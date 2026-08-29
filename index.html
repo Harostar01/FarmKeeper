@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#2e7d32">
+
+    <title>FarmKeeper</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+
+    <header class="app-header">
+        <h1>🌱 FarmKeeper</h1>
+        <p>Simple farm records made easy.</p>
+    </header>
+
+    <main class="container">
+
+        <section class="welcome-card">
+            <h2>Good day, Olamilekan 👋</h2>
+
+            <p>
+                Keep track of your farm activities,
+                expenses, crops and egg production.
+            </p>
+        </section>
+
+        <section class="summary">
+
+            <div class="summary-card">
+                <span>💰</span>
+                <h3>Expenses</h3>
+                <p id="dashboardExpenses">₦0</p>
+            </div>
+
+
+            <div class="summary-card">
+                <span>💵</span>
+                <h3>Income</h3>
+                <p id="dashboardIncome">₦0</p>
+            </div>
+
+
+            <div class="summary-card">
+                <span>📊</span>
+                <h3>Profit</h3>
+                <p id="dashboardProfit">₦0</p>
+            </div>
+
+            <div class="summary-card">
+                <span>📍</span>
+                <h3>Last Visit</h3>
+                <p>Not recorded</p>
+            </div>
+
+        </section>
+
+           
+
+        <section class="quick-actions">
+
+            <h2>Quick Actions</h2>
+
+            <button class="action-button" id="recordVisitButton">
+              📍 Record Farm Visit
+             </button>
+
+            <button class="action-button" id="dailyRecordButton">
+                 📝 Record Today's Activities
+            </button>
+
+        </section>
+
+        <section class="visit-form" id="visitForm">
+
+            <h2>📍 Record Farm Visit</h2>
+
+            <label for="visitDate">Date</label>
+            <input type="date" id="visitDate">
+
+            <label for="visitTime">Time</label>
+            <input type="time" id="visitTime">
+
+            <label for="visitNotes">What happened today?</label>
+            <textarea
+                id="visitNotes"
+                placeholder="Example: Checked vegetables and fed the birds."
+                rows="4">
+            </textarea>
+
+            <button class="action-button" id="saveVisitButton">
+                💾 Save Farm Visit
+            </button>
+
+        </section>
+
+        <section class="daily-form" id="dailyForm">
+
+            <h2>📝 Today's Farm Record</h2>
+
+            <label for="dailyDate">Date</label>
+            <input type="date" id="dailyDate">
+
+
+            <!-- POULTRY -->
+
+            <h3>🐔 Poultry / Egg Production</h3>
+
+            <label for="birdsPresent">Birds Present</label>
+            <input type="number" id="birdsPresent" min="0" placeholder="Example: 500">
+
+            <label for="eggsCollected">Eggs Collected</label>
+            <input type="number" id="eggsCollected" min="0" placeholder="Example: 420">
+
+            <label for="brokenEggs">Broken Eggs</label>
+            <input type="number" id="brokenEggs" min="0" placeholder="Example: 5">
+
+            <label for="birdDeaths">Bird Deaths</label>
+            <input type="number" id="birdDeaths" min="0" placeholder="Example: 0">
+
+            <label for="feedUsed">Feed Used (kg)</label>
+            <input type="number" id="feedUsed" min="0" step="0.1" placeholder="Example: 25">
+
+
+        <!-- CROPS -->
+
+            <h3>🌱 Crops</h3>
+
+            <label for="cropName">Crop</label>
+
+            <select id="cropName">
+                <option value="">Select crop</option>
+                <option value="Tomato">Tomato</option>
+                <option value="Pepper">Pepper</option>
+                <option value="Cucumber">Cucumber</option>
+                <option value="Okra">Okra</option>
+                <option value="Spinach">Spinach</option>
+                <option value="Other">Other</option>
+            </select>
+
+
+            <label for="cropActivity">Activity</label>
+
+            <select id="cropActivity">
+                <option value="">Select activity</option>
+                <option value="Planting">Planting</option>
+                <option value="Weeding">Weeding</option>
+                <option value="Watering">Watering</option>
+                <option value="Fertilizing">Fertilizing</option>
+                <option value="Spraying">Spraying</option>
+                <option value="Harvesting">Harvesting</option>
+                <option value="Other">Other</option>
+            </select>
+
+
+            <label for="harvestKg">Harvest (kg)</label>
+            <input type="number" id="harvestKg" min="0" step="0.1" placeholder="Example: 15">
+
+
+            <!-- LABOUR -->
+
+            <h3>👷 Labour</h3>
+
+            <label for="workers">Number of Workers</label>
+            <input type="number" id="workers" min="0" placeholder="Example: 3">
+
+            <label for="labourCost">Labour Cost (₦)</label>
+            <input type="number" id="labourCost" min="0" placeholder="Example: 5000">
+
+
+            <!-- EXPENSES -->
+
+            <h3>💰 Expenses</h3>
+
+            <label for="expenseCategory">Expense Category</label>
+
+            <select id="expenseCategory">
+                <option value="">Select category</option>
+                <option value="Feed">Feed</option>
+                <option value="Seeds">Seeds</option>
+                <option value="Fertilizer">Fertilizer</option>
+                <option value="Chemicals">Chemicals</option>
+                <option value="Medicine">Medicine</option>
+                <option value="Transport">Transport</option>
+                <option value="Other">Other</option>
+            </select>
+
+
+            <label for="expenseAmount">Amount Spent (₦)</label>
+            <input type="number" id="expenseAmount" min="0" placeholder="Example: 10000">
+
+
+            <!-- SALES -->
+
+            <h3>🧺 Sales</h3>
+
+            <label for="eggsSold">Eggs Sold</label>
+            <input type="number" id="eggsSold" min="0" placeholder="Example: 300">
+
+            <label for="vegetableSales">Vegetable Sales (₦)</label>
+            <input type="number" id="vegetableSales" min="0" placeholder="Example: 15000">
+
+            <label for="eggSales">Egg Sales (₦)</label>
+            <input type="number" id="eggSales" min="0" placeholder="Example: 25000">
+
+
+            <!-- NOTES -->
+
+            <h3>📝 Notes</h3>
+
+            <textarea
+                id="dailyNotes"
+                rows="4"
+                placeholder="Anything important that happened today?">
+            </textarea>
+
+
+            <button class="action-button" id="saveDailyButton">
+                💾 Save Today's Record
+            </button>
+
+       </section>
+
+       <button
+            type="button"
+            class="small-button"
+            id="viewDailyHistoryButton">
+
+            📜 View Daily Records History
+
+        </button>
+
+       <section
+            class="daily-history-section"
+            id="dailyHistorySection"
+            style="display: none;">
+
+            <div class="section-header">
+
+                <h2>📜 Daily Records History</h2>
+
+                <button
+                    type="button"
+                    class="small-button"
+                    id="hideDailyHistoryButton">
+
+                    ✕ Hide History
+
+                </button>
+
+            </div>
+
+
+            <div id="dailyRecordsHistory">
+
+                <p class="empty-message">
+                    No daily records recorded yet.
+                </p>
+
+            </div>
+
+        </section>
+
+       <section class="crop-form" id="cropForm">
+
+        <h2>🌱 Crop Record</h2>
+
+        <label for="cropRecordName">Crop</label>
+
+        <select id="cropRecordName">
+            <option value="">Select crop</option>
+            <option value="Tomato">Tomato</option>
+            <option value="Pepper">Pepper</option>
+            <option value="Cucumber">Cucumber</option>
+            <option value="Okra">Okra</option>
+            <option value="Spinach">Spinach</option>
+            <option value="Amaranth">Amaranth</option>
+            <option value="Carrot">Carrot</option>
+            <option value="Cabbage">Cabbage</option>
+            <option value="Onion">Onion</option>
+            <option value="Other">Other</option>
+        </select>
+
+
+        <label for="cropVariety">Variety</label>
+
+        <input
+            type="text"
+            id="cropVariety"
+            placeholder="Example: Roma">
+
+
+        <label for="cropPlot">Plot / Location</label>
+
+        <input
+            type="text"
+            id="cropPlot"
+            placeholder="Example: Plot A">
+
+
+        <label for="plantingDate">Planting Date</label>
+
+        <input
+            type="date"
+            id="plantingDate">
+
+
+        <label for="quantityPlanted">Quantity Planted</label>
+
+        <input
+            type="number"
+            id="quantityPlanted"
+            min="0"
+            step="0.1"
+            placeholder="Example: 200">
+
+
+        <label for="cropUnit">Unit</label>
+
+        <select id="cropUnit">
+            <option value="seedlings">Seedlings</option>
+            <option value="seeds">Seeds</option>
+            <option value="kg">kg</option>
+            <option value="bags">Bags</option>
+            <option value="beds">Beds</option>
+        </select>
+
+
+        
+        <h3>📊 Crop Status</h3>
+
+        <label for="cropStatus">Status</label>
+
+        <select id="cropStatus">
+
+            <option value="Growing">
+                🌱 Growing
+            </option>
+
+            <option value="Flowering">
+                🌼 Flowering
+            </option>
+
+            <option value="Harvesting">
+                🍅 Harvesting
+            </option>
+
+            <option value="Completed">
+                ✅ Completed
+            </option>
+
+            <option value="Failed">
+                ❌ Failed
+            </option>
+
+        </select>
+
+
+        <label for="cropNotes">Notes</label>
+
+        <textarea
+            id="cropNotes"
+            rows="4"
+            placeholder="Example: Plants are growing well. Some leaves showing signs of pest attack.">
+        </textarea>
+
+
+       
+        <button
+            class="action-button"
+            id="saveCropButton">
+
+            💾 Save Crop Record
+
+        </button>
+
+   </section>
+
+
+      <section class="crop-list-section" id="cropListSection">
+
+            <div class="section-header">
+
+                <h2>🌱 My Crops</h2>
+
+                <button
+                    type="button"
+                    class="small-button"
+                    id="addCropButton">
+
+                    ＋ Add Crop
+
+                </button>
+
+            </div>
+
+
+            <div id="cropList">
+
+                <p class="empty-message">
+                    No crops recorded yet.
+                </p>
+
+            </div>
+
+       </section>
+
+        <section
+            class="crop-details-section"
+            id="cropDetailsSection">
+
+            <button
+                type="button"
+                class="back-button"
+                id="backToCropListButton">
+
+                ← Back to Crops
+
+            </button>
+
+
+            <div id="cropDetails">
+
+            </div>
+
+
+            <div class="crop-activity-header">
+
+                <h3>📜 Activity History</h3>
+
+                <button
+                    type="button"
+                    class="small-button"
+                    id="addActivityButton">
+
+                    ＋ Add Activity
+
+                </button>
+
+            </div>
+
+
+            <div id="cropActivityList">
+
+                <p class="empty-message">
+                    No activities recorded yet.
+                </p>
+
+            </div>
+
+        </section>
+
+        <section
+            class="crop-activity-form"
+            id="cropActivityForm">
+
+            <h2>📜 Add Crop Activity</h2>
+
+
+            <p id="activityCropName"></p>
+
+
+            <label for="activityDate">
+                Date
+            </label>
+
+            <input
+                type="date"
+                id="activityDate">
+
+
+            <label for="cropActivityType">
+                Activity
+            </label>
+
+            <select id="cropActivityType">
+
+                <option value="">
+                    Select activity
+                </option>
+
+                <option value="Planting">
+                    🌱 Planting
+                </option>
+
+                <option value="Watering">
+                    💧 Watering
+                </option>
+
+                <option value="Weeding">
+                    🌿 Weeding
+                </option>
+
+                <option value="Fertilizing">
+                    🧪 Fertilizing
+                </option>
+
+                <option value="Spraying">
+                    🐛 Spraying
+                </option>
+
+                <option value="Harvesting">
+                    🧺 Harvesting
+                </option>
+
+                <option value="Other">
+                    ✏️ Other
+                </option>
+
+            </select>
+
+
+            <label for="activityQuantity">
+                Quantity
+            </label>
+
+            <input
+                type="number"
+                id="activityQuantity"
+                min="0"
+                step="0.1"
+                placeholder="Example: 15">
+
+
+            <label for="activityUnit">
+                Unit
+            </label>
+
+            <select id="activityUnit">
+
+                <option value="none">
+                    Not applicable
+                </option>
+
+                <option value="kg">
+                    kg
+                </option>
+
+                <option value="litres">
+                    Litres
+                </option>
+
+                <option value="bags">
+                    Bags
+                </option>
+
+                <option value="crates">
+                    Crates
+                </option>
+
+                <option value="pieces">
+                    Pieces
+                </option>
+
+            </select>
+
+
+            <label for="activityNotes">
+                Notes
+            </label>
+
+            <textarea
+                id="activityNotes"
+                rows="4"
+                placeholder="What happened today?">
+            </textarea>
+
+
+            <button
+                type="button"
+                class="action-button"
+                id="saveActivityButton">
+
+                💾 Save Activity
+
+            </button>
+
+        </section>
+
+      
+
+        <section class="modules">
+
+            <h2>Farm Records</h2>
+
+            <div class="module-grid">
+
+                <button class="module-button" id="cropButton">
+                    🌾
+                    <span>Crops</span>
+                </button>
+
+                <button class="module-button" id="eggProductionButton">
+                     
+                    🐔
+                    <span>Egg Production</span>
+                    
+                </button>
+
+                <button class="module-button" id="expenseButton">
+                    💰
+                    <span>Expenses</span>
+                </button>
+
+                <button class="module-button" id="labourButton">
+                    👷
+                    <span>Labour</span>
+                </button>
+
+                <button class="module-button" id="salesButton">
+                    🧺
+                    <span>Sales</span>
+                </button>
+
+                <button
+                    class="module-button"
+                    id="reportsButton">
+
+                    📊
+                    <span>Reports</span>
+
+                </button>
+                <button class="module-button" id="remindersButton">
+
+                    🔔
+                    <span>Reminders</span>
+
+                </button>
+            </div>
+
+        </section>
+
+    <section
+            class="poultry-section"
+            id="poultrySection"
+            style="display: none;">
+
+            <h2>🐔 Poultry & Egg Production</h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="backFromPoultryButton">
+
+                ← Back to Dashboard
+
+            </button>
+            <div id="flockSetupArea" style="display: none;">
+
+               <div class="flock-card">
+
+                    <h3>🐔 Flock Setup</h3>
+
+                    <p>
+                        Enter your flock information.
+                        You only need to do this once.
+                    </p>
+
+                    <label for="flockBreed">
+                        Breed
+                    </label>
+
+                    <input
+                        type="text"
+                        id="flockBreed"
+                        placeholder="Example: Isa Brown">
+
+
+                    <label for="initialBirds">
+                        Initial Number of Birds
+                    </label>
+
+                    <input
+                        type="number"
+                        id="initialBirds"
+                        min="1"
+                        placeholder="Example: 500">
+
+
+                    <label for="dateAcquired">
+                        Date Acquired
+                    </label>
+
+                    <input
+                        type="date"
+                        id="dateAcquired">
+
+
+                    <label for="flockNotes">
+                        Notes
+                    </label>
+
+                    <textarea
+                        id="flockNotes"
+                        rows="4"
+                        placeholder="Any information about the flock"></textarea>
+
+
+                    <button
+                        type="button"
+                        class="action-button"
+                        id="saveFlockButton">
+
+                        💾 Save Flock
+
+                    </button>
+                </div>
+           </div>
+            
+            
+
+
+            <div
+                class="flock-summary"
+                id="flockSummary"
+                style="display: none;">
+
+            </div>
+
+            <button
+                type="button"
+                class="small-button"
+                id="manageFlockButton">
+
+                ⚙️ Manage Flock
+
+            </button>
+
+          <div class="egg-production-card">
+
+                <h3>🥚 Daily Egg Production</h3>
+
+                <p>
+                    Record what happened with your birds today.
+                </p>
+
+
+                <label for="eggRecordDate">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    id="eggRecordDate">
+
+
+                <label for="birdsPresent">
+                    🐔 Birds Present
+                </label>
+
+                <input
+                    type="number"
+                    id="eggBirdsPresent"
+                    min="0"
+                    placeholder="Example: 500">
+
+
+                <label for="eggsCollected">
+                    🥚 Eggs Collected
+                </label>
+
+                <input
+                    type="number"
+                    id="dailyEggsCollected"
+                    min="0"
+                    placeholder="Example: 420">
+
+
+                <label for="brokenEggs">
+                    🥚 Broken Eggs
+                </label>
+
+                <input
+                    type="number"
+                    id="dailyBrokenEggs"
+                    min="0"
+                    placeholder="Example: 8">
+
+
+                <label for="birdDeaths">
+                    💀 Bird Deaths
+                </label>
+
+                <input
+                    type="number"
+                    id="dailyBirdDeaths"
+                    min="0"
+                    placeholder="Example: 1">
+
+
+                <label for="feedUsed">
+                    🌾 Feed Used (kg)
+                </label>
+
+                <input
+                    type="number"
+                    id="dailyFeedUsed"
+                    min="0"
+                    step="0.1"
+                    placeholder="Example: 35">
+
+
+                <label for="eggRecordNotes">
+                    📝 Notes
+                </label>
+
+                <textarea
+                    id="eggRecordNotes"
+                    rows="4"
+                    placeholder="Anything important about today's production"></textarea>
+
+
+                <button
+                    type="button"
+                    class="action-button"
+                    id="saveEggRecordButton">
+
+                    💾 Save Egg Record
+
+                </button>
+
+            </div>
+
+            <div class="egg-history-card">
+
+                <h3>📜 Egg Production History</h3>
+
+                <div id="eggProductionHistory">
+
+                    <p class="empty-message">
+                        No egg production records yet.
+                    </p>
+
+                </div>
+
+            </div>
+        </section>
+       
+        <section
+            class="expense-section"
+            id="farmExpenseSection"
+            style="display: none;">
+
+            <h2>💰 Farm Expenses</h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="farmExpenseButton">
+
+                ← Back to Dashboard
+
+            </button>
+
+
+            <div class="expense-form-card">
+
+                <h3>💰 Add Farm Expense</h3>
+
+                <label for="farmExpenseDate">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    id="farmExpenseDate">
+
+
+                <label for="farmExpenseCategory">
+                    Category
+                </label>
+
+                <select id="farmExpenseCategory">
+
+                    <option value="">
+                        Select category
+                    </option>
+
+                    <option value="Feed">
+                        🌾 Feed
+                    </option>
+
+                    <option value="Seeds">
+                        🌱 Seeds
+                    </option>
+
+                    <option value="Fertilizer">
+                        🧪 Fertilizer
+                    </option>
+
+                    <option value="Medication">
+                        💊 Medication
+                    </option>
+
+                    <option value="Labour">
+                        👷 Labour
+                    </option>
+
+                    <option value="Transportation">
+                        🚚 Transportation
+                    </option>
+
+                    <option value="Water">
+                        💧 Water
+                    </option>
+
+                    <option value="Electricity">
+                        ⚡ Electricity
+                    </option>
+
+                    <option value="Equipment">
+                        🔧 Equipment
+                    </option>
+
+                    <option value="Other">
+                        📦 Other
+                    </option>
+
+                </select>
+
+
+                <label for="farmExpenseDescription">
+                    Description
+                </label>
+
+                <input
+                    type="text"
+                    id="farmExpenseDescription"
+                    placeholder="Example: Layer feed">
+
+
+                <label for="farmExpenseAmount">
+                    Amount (₦)
+                </label>
+
+                <input
+                    type="number"
+                    id="farmExpenseAmount"
+                    min="0"
+                    step="0.01"
+                    placeholder="Example: 45000">
+
+
+                <label for="farmExpenseNotes">
+                    Notes
+                </label>
+
+                <textarea
+                    id="farmExpenseNotes"
+                    rows="4"
+                    placeholder="Additional information"></textarea>
+
+
+                <button
+                    type="button"
+                    class="action-button"
+                    id="saveExpenseButton">
+
+                    💾 Save Expense
+
+                </button>
+
+            </div>
+
+
+            <div class="expense-history-card">
+
+                <h3>📜 Expense History</h3>
+
+                <div id="expenseHistory">
+
+                    <p class="empty-message">
+                        No expenses recorded yet.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section> 
+
+        <section
+            class="labour-section"
+            id="farmLabourSection"
+            style="display: none;">
+
+            <h2>👷🏾 Farm Labour</h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="farmLabourBackButton">
+
+                ← Back to Dashboard
+
+            </button>
+
+
+            <!-- Labour Form -->
+
+            <div class="form-card">
+
+                <h3>➕ Record Labour</h3>
+
+
+                <label for="farmLabourDate">
+                    Date
+                </label>
+
+                <input
+                    type="date"
+                    id="farmLabourDate">
+
+
+                <label for="farmLabourWorkers">
+                    Number of Workers
+                </label>
+
+                <input
+                    type="number"
+                    id="farmLabourWorkers"
+                    min="1"
+                    placeholder="e.g. 3">
+
+
+                <label for="farmLabourType">
+                    Type of Work
+                </label>
+
+                <select id="farmLabourType">
+
+                    <option value="">
+                        Select type of work
+                    </option>
+
+                    <option value="Planting">
+                        Planting
+                    </option>
+
+                    <option value="Weeding">
+                        Weeding
+                    </option>
+
+                    <option value="Harvesting">
+                        Harvesting
+                    </option>
+
+                    <option value="Land Preparation">
+                        Land Preparation
+                    </option>
+
+                    <option value="Cleaning">
+                        Cleaning
+                    </option>
+
+                    <option value="Feeding">
+                        Feeding
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+
+                <label for="farmLabourCost">
+                    Labour Cost (₦)
+                </label>
+
+                <input
+                    type="number"
+                    id="farmLabourCost"
+                    min="0"
+                    placeholder="e.g. 15000">
+
+
+                <label for="farmLabourNotes">
+                    Notes
+                </label>
+
+                <textarea
+                    id="farmLabourNotes"
+                    placeholder="Additional information...">
+                </textarea>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="saveLabourButton">
+
+                    💾 Save Labour Record
+
+                </button>
+
+            </div>
+
+
+            <!-- Labour History -->
+
+            <div class="labour-history">
+
+                <h3>📋 Labour History</h3>
+
+                <div id="farmLabourHistory">
+
+                    <p class="empty-message">
+                        No labour records yet.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section
+            class="sales-section"
+            id="farmSalesSection"
+            style="display: none;">
+
+            <h2>💵 Farm Sales & Income</h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="farmSalesBackButton">
+
+                ← Back to Dashboard
+
+            </button>
+
+
+            <!-- Sales Form -->
+
+            <div class="form-card">
+
+                <h3>➕ Record Sale</h3>
+
+
+                <label for="farmSalesDate">
+                    Sale Date
+                </label>
+
+                <input
+                    type="date"
+                    id="farmSalesDate">
+
+
+                <label for="farmSalesProduct">
+                    Product
+                </label>
+
+                <select id="farmSalesProduct">
+
+                    <option value="">
+                        Select product
+                    </option>
+
+                    <option value="Eggs">
+                        🥚 Eggs
+                    </option>
+
+                    <option value="Vegetables">
+                        🥬 Vegetables
+                    </option>
+
+                    <option value="Other">
+                        📦 Other
+                    </option>
+
+                </select>
+
+
+                <label for="farmSalesQuantity">
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="farmSalesQuantity"
+                    min="0"
+                    placeholder="e.g. 5">
+
+
+                <label for="farmSalesUnit">
+                    Unit
+                </label>
+
+                <select id="farmSalesUnit">
+
+                    <option value="">
+                        Select unit
+                    </option>
+
+                    <option value="Crates">
+                        Crates
+                    </option>
+
+                    <option value="Kg">
+                        Kg
+                    </option>
+
+                    <option value="Baskets">
+                        Baskets
+                    </option>
+
+                    <option value="Pieces">
+                        Pieces
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+
+                <label for="farmSalesAmount">
+                    Amount Received (₦)
+                </label>
+
+                <input
+                    type="number"
+                    id="farmSalesAmount"
+                    min="0"
+                    placeholder="e.g. 25000">
+
+
+                <label for="farmSalesCustomer">
+                    Customer / Buyer
+                </label>
+
+                <input
+                    type="text"
+                    id="farmSalesCustomer"
+                    placeholder="e.g. Market buyer">
+
+
+                <label for="farmSalesNotes">
+                    Notes
+                </label>
+
+                <textarea
+                    id="farmSalesNotes"
+                    placeholder="Additional information...">
+                </textarea>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="saveSalesButton">
+
+                    💾 Save Sale
+
+                </button>
+
+            </div>
+
+
+            <!-- Sales History -->
+
+            <div class="sales-history">
+
+                <h3>📋 Sales History</h3>
+
+                <div id="farmSalesHistory">
+
+                    <p class="empty-message">
+                        No sales recorded yet.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section
+            class="reports-section"
+            id="reportsSection"
+            style="display: none;">
+
+            <h2>📊 Farm Reports</h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="reportsBackButton">
+
+                ← Back to Dashboard
+
+            </button>
+
+
+            <!-- Report Filter -->
+
+            <div class="form-card">
+
+                <h3>📅 Report Period</h3>
+
+                <label for="reportPeriod">
+                    Select Period
+                </label>
+
+                <select id="reportPeriod">
+
+                    <option value="all">
+                        All Time
+                    </option>
+
+                    <option value="today">
+                        Today
+                    </option>
+
+                    <option value="week">
+                        This Week
+                    </option>
+
+                    <option value="month">
+                        This Month
+                    </option>
+
+                </select>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="generateReportButton">
+
+                    📊 Generate Report
+
+                </button>
+
+            </div>
+
+
+            <!-- Report Results -->
+
+            <div
+                class="report-results"
+                id="reportResults">
+
+                <p class="empty-message">
+                    Select a period and generate a report.
+                </p>
+
+            </div>
+
+        </section>
+        <section
+            class="reminders-section"
+            id="remindersSection"
+            style="display: none;">
+
+            <h2>🔔 Farm Reminders</h2>
+
+            <button
+                type="button"
+                class="small-button"
+                id="remindersBackButton">
+
+                ← Back to Dashboard
+
+            </button>
+
+
+            <div class="reminder-card">
+
+                <h3>📝 Daily Record Reminder</h3>
+
+                <p>
+                    Set a time to remind yourself to record
+                    today's farm activities.
+                </p>
+
+
+                <label for="dailyReminderTime">
+                    Reminder Time
+                </label>
+
+                <input
+                    type="time"
+                    id="dailyReminderTime">
+
+
+                <label class="checkbox-label">
+
+                    <input
+                        type="checkbox"
+                        id="dailyReminderEnabled">
+
+                    Enable Daily Reminder
+
+                </label>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="saveReminderButton">
+
+                    💾 Save Reminder
+
+                </button>
+
+            </div>
+
+
+            <div
+                class="reminder-status-card"
+                id="reminderStatus">
+
+                <h3>🔔 Reminder Status</h3>
+
+                <p>
+                    Daily reminder is currently disabled.
+                </p>
+
+            </div>
+
+        </section>
+    </main>
+
+
+
+    <footer>
+        <p>FarmKeeper v1.0</p>
+    </footer>
+
+
+    <script src="js/db.js"></script>
+     <script src="js/app.js"></script>
+
+</body>
+</html>

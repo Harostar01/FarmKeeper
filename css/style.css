@@ -1,0 +1,1320 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f7f4;
+    color: #263326;
+    min-height: 100vh;
+}
+
+
+/* HEADER */
+
+.app-header {
+    background: #2e7d32;
+    color: white;
+    padding: 25px 20px;
+    text-align: center;
+}
+
+.app-header h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.app-header p {
+    font-size: 14px;
+}
+
+
+/* MAIN CONTAINER */
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+}
+
+
+/* WELCOME */
+
+.welcome-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.welcome-card h2 {
+    margin-bottom: 10px;
+}
+
+.welcome-card p {
+    line-height: 1.5;
+    color: #5f695f;
+}
+
+
+/* SUMMARY */
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.summary-card {
+    background: white;
+    padding: 18px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.summary-card span {
+    font-size: 25px;
+}
+
+.summary-card h3 {
+    font-size: 14px;
+    margin: 8px 0;
+    color: #667066;
+}
+
+.summary-card p {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+
+/* QUICK ACTIONS */
+
+.quick-actions {
+    margin-bottom: 25px;
+}
+
+.quick-actions h2,
+.modules h2 {
+    margin-bottom: 12px;
+}
+
+.action-button {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 12px;
+    background: #388e3c;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+/* MODULES */
+
+.module-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.module-button {
+    background: white;
+    border: none;
+    border-radius: 15px;
+    padding: 20px 10px;
+    min-height: 100px;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.module-button span {
+    display: block;
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+    padding: 25px;
+    color: #777;
+    font-size: 13px;
+}
+
+/* FARM VISIT FORM */
+
+.visit-form {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.visit-form h2 {
+    margin-bottom: 15px;
+}
+
+.visit-form label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.visit-form input,
+.visit-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.visit-form textarea {
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+/* DAILY FARM RECORD */
+
+.daily-form {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.daily-form h2 {
+    margin-bottom: 15px;
+}
+
+.daily-form h3 {
+    margin-top: 22px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.daily-form label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.daily-form input,
+.daily-form select,
+.daily-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.daily-form textarea {
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+/* CROP RECORD FORM */
+
+.crop-form {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.crop-form h2 {
+    margin-bottom: 15px;
+}
+
+.crop-form h3 {
+    margin-top: 22px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.crop-form label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.crop-form input,
+.crop-form select,
+.crop-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.crop-form textarea {
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+/* CROP LIST */
+
+.crop-list-section {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.small-button {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.crop-card {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.crop-card h3 {
+    margin: 0 0 6px 0;
+}
+
+.crop-card p {
+    margin: 5px 0;
+}
+
+.crop-card button {
+    margin-top: 10px;
+}
+
+
+/* CROP DETAILS */
+
+.crop-details-section {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.back-button {
+    border: none;
+    background: transparent;
+    padding: 5px 0;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.crop-details-card {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.crop-details-card h2 {
+    margin-bottom: 8px;
+}
+
+.crop-details-card p {
+    margin: 6px 0;
+}
+
+
+/* ACTIVITY HISTORY */
+
+.crop-activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.activity-card {
+    border-left: 4px solid #ddd;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background: #fafafa;
+    border-radius: 8px;
+}
+
+.activity-card strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.activity-card p {
+    margin: 4px 0;
+}
+
+
+/* ACTIVITY FORM */
+
+.crop-activity-form {
+    display: none;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.crop-activity-form label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.crop-activity-form input,
+.crop-activity-form select,
+.crop-activity-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.crop-activity-form textarea {
+    resize: vertical;
+}
+
+#activityCropName {
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 20px;
+    opacity: 0.7;
+}
+.activity-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.edit-activity-button,
+.delete-activity-button {
+    border: none;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* POULTRY */
+
+.poultry-section {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.flock-card {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.flock-card h3 {
+    margin-top: 0;
+}
+
+.flock-card label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.flock-card input,
+.flock-card textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.flock-card textarea {
+    resize: vertical;
+}
+
+.flock-summary {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.flock-summary h3 {
+    margin-top: 0;
+}
+
+.flock-summary p {
+    margin: 7px 0;
+}
+
+.egg-production-card {
+    margin-top: 25px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.egg-production-card h3 {
+    margin-top: 0;
+}
+
+.egg-production-card label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.egg-production-card input,
+.egg-production-card textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.egg-production-card textarea {
+    resize: vertical;
+}
+
+.egg-history-card {
+    margin-top: 25px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.egg-history-card h3 {
+    margin-top: 0;
+}
+
+.egg-record-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 12px;
+}
+
+.egg-record-card h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.egg-record-card p {
+    margin: 6px 0;
+}
+
+.egg-record-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.edit-egg-button,
+.delete-egg-button {
+    border: none;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.expense-section {
+    margin-top: 25px;
+}
+
+.expense-form-card,
+.expense-history-card {
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+}
+
+.expense-form-card h3,
+.expense-history-card h3 {
+    margin-top: 0;
+}
+
+.expense-form-card label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.expense-form-card input,
+.expense-form-card select,
+.expense-form-card textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.expense-form-card textarea {
+    resize: vertical;
+}
+
+.expense-record-card {
+    margin-top: 12px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+.expense-record-card h4 {
+    margin-top: 0;
+}
+
+.expense-record-card p {
+    margin: 6px 0;
+}
+
+.expense-record-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* =========================================
+   LABOUR MODULE
+   ========================================= */
+
+.labour-section {
+    padding: 20px;
+    margin-top: 20px;
+}
+
+
+.labour-section h2 {
+    margin-bottom: 15px;
+}
+
+
+.labour-section .form-card {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+.labour-section .form-card h3 {
+    margin-bottom: 20px;
+}
+
+
+.labour-section label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+
+.labour-section input,
+.labour-section select,
+.labour-section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+
+.labour-section textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+
+.labour-section .primary-button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+
+.labour-history {
+    margin-top: 25px;
+}
+
+
+.labour-history h3 {
+    margin-bottom: 15px;
+}
+
+
+.labour-record-card {
+    background: white;
+    padding: 18px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #4caf50;
+}
+
+
+.labour-record-card h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+
+.labour-record-card p {
+    margin: 8px 0;
+}
+
+.labour-record-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.edit-labour-button,
+.delete-labour-button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* =========================================
+   SALES MODULE
+   ========================================= */
+
+.sales-section {
+    padding: 20px;
+    margin-top: 20px;
+}
+
+
+.sales-section h2 {
+    margin-bottom: 15px;
+}
+
+
+.sales-section .form-card {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+.sales-section .form-card h3 {
+    margin-bottom: 20px;
+}
+
+
+.sales-section label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+
+.sales-section input,
+.sales-section select,
+.sales-section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+
+.sales-section textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+
+.sales-section .primary-button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+.sales-history {
+    margin-top: 25px;
+}
+
+
+.sales-history h3 {
+    margin-bottom: 15px;
+}
+
+
+.sales-record-card {
+    background: white;
+    padding: 18px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #4caf50;
+}
+
+
+.sales-record-card h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+
+.sales-record-card p {
+    margin: 8px 0;
+}
+
+.sales-record-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.edit-sales-button,
+.delete-sales-button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* =========================================
+   REPORTS MODULE
+   ========================================= */
+
+.reports-section {
+    padding: 20px;
+    margin-top: 20px;
+}
+
+
+.reports-section h2 {
+    margin-bottom: 15px;
+}
+
+
+.reports-section .form-card {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+.reports-section .form-card h3 {
+    margin-bottom: 20px;
+}
+
+
+.reports-section label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+
+.reports-section select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+
+.reports-section .primary-button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+.report-results {
+    margin-top: 25px;
+}
+
+
+.report-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+.report-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+
+.report-item:last-child {
+    border-bottom: none;
+}
+
+
+.report-total {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.crop-action-buttons {
+    margin-top: 20px;
+}
+
+.delete-crop-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+}
+/* =================================
+   FARMKEEPER REMINDERS
+================================= */
+
+.reminders-section {
+    margin-top: 20px;
+    padding-bottom: 30px;
+}
+
+
+/* Header */
+
+.reminders-section > h2 {
+    font-size: 24px;
+    margin: 20px 0 8px;
+}
+
+
+/* Intro text */
+
+.reminders-section > p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+
+/* Reminder Card */
+
+.reminder-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8e8e8;
+}
+
+
+/* Card heading */
+
+.reminder-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 19px;
+}
+
+
+/* Card description */
+
+.reminder-card p {
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+
+/* Time label */
+
+.reminder-card label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+
+/* Time input */
+
+#dailyReminderTime {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid #d6d6d6;
+    border-radius: 10px;
+    background: #fafafa;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+}
+
+
+/* Time input when selected */
+
+#dailyReminderTime:focus {
+    outline: none;
+    border-color: #2e7d32;
+    background: #ffffff;
+}
+
+
+/* Enable / Disable row */
+
+.checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    margin: 5px 0 20px;
+    background: #f6f8f6;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+
+/* Checkbox */
+
+#dailyReminderEnabled {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: #2e7d32;
+    cursor: pointer;
+}
+
+
+/* Save button */
+
+#saveReminderButton {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+/* Reminder Status */
+
+.reminder-status-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+
+.reminder-status-card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+
+.reminder-status-card p {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f6f8f6;
+    color: #555;
+    line-height: 1.5;
+}
+
+
+/* Back button spacing */
+
+#remindersBackButton {
+    margin-bottom: 5px;
+}
+
+/* =========================================
+   DAILY RECORDS HISTORY
+   ========================================= */
+
+.daily-history-section {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f8faf8;
+    border-radius: 16px;
+    border: 1px solid #dce8dc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+
+/* History Header */
+
+.daily-history-section .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+
+.daily-history-section .section-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #2e7d32;
+}
+
+
+/* View History Button */
+
+#viewDailyHistoryButton {
+    display: block;
+    width: 100%;
+    margin-top: 15px;
+    padding: 13px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #2e7d32;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+
+#viewDailyHistoryButton:hover {
+    background: #256628;
+    transform: translateY(-1px);
+}
+
+
+#viewDailyHistoryButton:active {
+    transform: translateY(0);
+}
+
+
+/* Hide History Button */
+
+#hideDailyHistoryButton {
+    border: none;
+    padding: 9px 13px;
+    border-radius: 8px;
+    background: #eeeeee;
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+
+#hideDailyHistoryButton:hover {
+    background: #dddddd;
+}
+
+
+/* Individual Daily Record */
+
+.daily-record-card {
+    background: white;
+    border: 1px solid #e0e8e0;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Record Date */
+
+.daily-record-card > h3 {
+    margin: 0 0 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+    color: #2e7d32;
+    font-size: 1.15rem;
+}
+
+
+/* Record Groups */
+
+.daily-record-group {
+    margin-top: 14px;
+    padding: 14px;
+    background: #f7faf7;
+    border-radius: 10px;
+    border-left: 4px solid #66bb6a;
+}
+
+
+.daily-record-group h4 {
+    margin: 0 0 9px;
+    color: #333;
+    font-size: 1rem;
+}
+
+
+.daily-record-group p {
+    margin: 6px 0;
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+.daily-record-group strong {
+    color: #333;
+}
+
+
+/* Empty History Message */
+
+#dailyRecordsHistory .empty-message {
+    text-align: center;
+    padding: 25px 15px;
+    color: #777;
+    background: white;
+    border-radius: 10px;
+    border: 1px dashed #cfd8cf;
+}
+
+
+/* Mobile Adjustment */
+
+@media (max-width: 600px) {
+
+    .daily-history-section {
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+
+    .daily-history-section .section-header {
+        align-items: flex-start;
+    }
+
+
+    .daily-history-section .section-header h2 {
+        font-size: 1.1rem;
+    }
+
+
+    #hideDailyHistoryButton {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+
+    .daily-record-card {
+        padding: 14px;
+    }
+
+
+    .daily-record-group {
+        padding: 12px;
+    }
+
+}
