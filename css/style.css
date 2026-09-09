@@ -1318,3 +1318,1721 @@ footer {
     }
 
 }
+
+/* =========================================
+   FARMKEEPER - WELCOME / PROFILE SETUP
+   ========================================= */
+
+#profileSetupCard {
+    width: 100%;
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 30px 25px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#profileSetupCard h3 {
+    margin: 0 0 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+#profileSetupCard p {
+    margin: 0 0 25px;
+    color: #666;
+    line-height: 1.5;
+}
+
+
+/* Welcome title */
+
+#welcomeTitle {
+    text-align: center;
+    margin: 25px auto 10px;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+
+/* Form groups */
+
+#profileSetupCard .form-group {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+#profileSetupCard label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+
+/* Inputs */
+
+#profileSetupCard input,
+#profileSetupCard select {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d5d5d5;
+    border-radius: 10px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+#profileSetupCard input:focus,
+#profileSetupCard select:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.12);
+}
+
+
+/* Continue button */
+
+#saveProfileButton {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #4caf50;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease,
+                opacity 0.15s ease;
+}
+
+#saveProfileButton:hover {
+    opacity: 0.9;
+}
+
+#saveProfileButton:active {
+    transform: scale(0.98);
+}
+
+
+/* Mobile adjustments */
+
+@media (max-width: 600px) {
+
+    #profileSetupCard {
+        width: calc(100% - 30px);
+        margin: 20px auto;
+        padding: 25px 20px;
+        border-radius: 18px;
+    }
+
+    #welcomeTitle {
+        font-size: 1.5rem;
+        padding: 0 15px;
+    }
+
+}
+
+/* =========================================
+   FARMKEEPER PROFILE + MOBILE NAVIGATION
+   ========================================= */
+.profile-setup-card,
+.profile-editor-card {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 18px;
+    margin: 20px auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    max-width: 600px;
+}
+
+.profile-setup-card label,
+.profile-editor-card label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.profile-setup-card input[type="text"],
+.profile-editor-card input[type="text"] {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d8ded8;
+    border-radius: 10px;
+    font: inherit;
+    outline: none;
+}
+
+.profile-setup-card input[type="text"]:focus,
+.profile-editor-card input[type="text"]:focus {
+    border-color: #388e3c;
+    box-shadow: 0 0 0 3px rgba(56, 142, 60, 0.12);
+}
+
+.welcome-options {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0 18px;
+}
+
+.welcome-options label {
+    margin: 0;
+    padding: 11px 12px;
+    border: 1px solid #e0e5e0;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fafcfa;
+}
+
+.welcome-options input {
+    margin-right: 8px;
+}
+
+.profile-editor-header,
+.more-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.profile-editor-header > div {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.profile-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    background: #e8f5e9;
+    border-radius: 50%;
+    font-size: 24px;
+}
+
+.profile-editor-header h2,
+.more-menu-header h2 {
+    margin: 0 0 4px;
+}
+
+.profile-editor-header p {
+    margin: 0;
+    color: #687268;
+    font-size: 14px;
+}
+
+.more-menu {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 18px;
+    margin: 20px 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.more-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.more-item {
+    border: 1px solid #e1e7e1;
+    background: #fafcfa;
+    border-radius: 14px;
+    padding: 18px 10px;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.more-item span {
+    display: block;
+    margin-top: 7px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #344034;
+}
+
+.bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: 68px;
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid #dfe5df;
+    box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.08);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+    border: none;
+    background: transparent;
+    color: #687268;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.bottom-nav-item span {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.bottom-nav-item small {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.bottom-nav-item.active {
+    color: #2e7d32;
+}
+
+footer {
+    padding-bottom: 100px;
+}
+
+@media (min-width: 700px) {
+    .bottom-nav {
+        max-width: 600px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        border-radius: 18px 18px 0 0;
+    }
+}
+
+/* =========================================
+   SECTION-BASED APP NAVIGATION
+   Each bottom-nav destination gets its own
+   clean workspace.
+   ========================================= */
+
+body {
+    padding-bottom: 90px;
+}
+
+/* The old Farm Records button grid is replaced by
+   the bottom navigation. Keep it out of the main UI. */
+.modules {
+    display: none !important;
+}
+
+/* Keep navigation workspaces visually separate. */
+#cropForm,
+#cropListSection,
+#cropDetailsSection,
+#cropActivityForm,
+#poultrySection,
+#farmExpenseSection,
+#farmLabourSection,
+#farmSalesSection,
+#dailyForm,
+#dailyHistorySection,
+#visitForm,
+#reportsSection,
+#remindersSection,
+#profileEditorCard,
+#moreMenu {
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+/* More is a landing page, not a mixed dashboard. */
+.more-menu {
+    margin-top: 20px;
+}
+
+.more-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.more-menu-header h2 {
+    margin: 0;
+}
+
+/* On small screens, give every workspace comfortable edges. */
+@media (max-width: 699px) {
+    #cropForm,
+    #cropListSection,
+    #cropDetailsSection,
+    #cropActivityForm,
+    #poultrySection,
+    #farmExpenseSection,
+    #farmLabourSection,
+    #farmSalesSection,
+    #dailyForm,
+    #dailyHistorySection,
+    #visitForm,
+    #reportsSection,
+    #remindersSection,
+    #profileEditorCard,
+    #moreMenu {
+        width: calc(100% - 24px);
+    }
+}
+
+
+/* =========================================
+   FULL-APP LANDING PAGE
+   The opening screen shows the farm content together.
+   Bottom navigation becomes a focused workspace switcher
+   after the user chooses a tab.
+   ========================================= */
+
+/* Give the opening page a little more breathing room between
+   its full set of farm sections. */
+body:not(.navigation-active) > main > section {
+    margin-bottom: 24px;
+}
+
+/* Keep the bottom navigation available while the landing page
+   is visible, but make it neutral until a workspace is selected. */
+body:not(.navigation-active) .bottom-nav-item {
+    color: #687268;
+}
+
+body:not(.navigation-active) .bottom-nav-item.active {
+    color: #687268;
+}
+
+/* On the landing page, the main record sections are visible as one
+   continuous farm workspace. */
+body:not(.navigation-active) #visitForm,
+body:not(.navigation-active) #dailyForm,
+body:not(.navigation-active) #cropForm,
+body:not(.navigation-active) #cropListSection,
+body:not(.navigation-active) #poultrySection,
+body:not(.navigation-active) #farmExpenseSection,
+body:not(.navigation-active) #farmLabourSection,
+body:not(.navigation-active) #farmSalesSection,
+body:not(.navigation-active) #reportsSection,
+body:not(.navigation-active) #remindersSection {
+    display: block;
+}
+
+/* Keep expandable/history/settings controls closed until requested. */
+body:not(.navigation-active) #cropDetailsSection,
+body:not(.navigation-active) #cropActivityForm,
+body:not(.navigation-active) #dailyHistorySection,
+body:not(.navigation-active) #profileEditorCard,
+body:not(.navigation-active) #moreMenu {
+    display: none;
+}
+
+/* =========================================
+   FARMKEEPER HOME DASHBOARD - CLEAN LANDING
+   Home shows compact summaries only. Full forms/history
+   stay inside their dedicated navigation workspaces.
+   ========================================= */
+
+.summary.financial-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.financial-summary .summary-card {
+    min-width: 0;
+    padding: 14px 8px;
+}
+
+.financial-summary .summary-card span {
+    font-size: 21px;
+}
+
+.financial-summary .summary-card h3 {
+    font-size: 12px;
+    margin: 6px 0;
+}
+
+.financial-summary .summary-card p {
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+.last-visit-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    padding: 14px 16px;
+    border-radius: 15px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.last-visit-card > span {
+    font-size: 24px;
+}
+
+.last-visit-card h3 {
+    font-size: 13px;
+    color: #667066;
+    margin-bottom: 4px;
+}
+
+.last-visit-card p {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.home-overview {
+    margin-bottom: 24px;
+}
+
+.home-overview-header {
+    margin-bottom: 12px;
+}
+
+.home-overview-header h2 {
+    margin-bottom: 4px;
+}
+
+.home-overview-header p {
+    color: #687268;
+    font-size: 13px;
+}
+
+.home-overview-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.home-overview-card {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    padding: 15px;
+    border: 1px solid #e1e7e1;
+    border-radius: 14px;
+    background: white;
+    color: #263326;
+    cursor: pointer;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04);
+}
+
+.home-overview-card:active {
+    transform: scale(0.99);
+}
+
+.overview-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: #f1f6f1;
+    font-size: 21px;
+}
+
+.overview-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.overview-content strong {
+    font-size: 15px;
+}
+
+.overview-content small {
+    color: #687268;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.overview-arrow {
+    font-size: 20px;
+    color: #2e7d32;
+}
+
+/* Home is deliberately compact: never expose full workspaces on landing. */
+body:not(.navigation-active) #visitForm,
+body:not(.navigation-active) #dailyForm,
+body:not(.navigation-active) #dailyHistorySection,
+body:not(.navigation-active) #cropForm,
+body:not(.navigation-active) #cropListSection,
+body:not(.navigation-active) #cropDetailsSection,
+body:not(.navigation-active) #cropActivityForm,
+body:not(.navigation-active) #poultrySection,
+body:not(.navigation-active) #farmExpenseSection,
+body:not(.navigation-active) #farmLabourSection,
+body:not(.navigation-active) #farmSalesSection,
+body:not(.navigation-active) #reportsSection,
+body:not(.navigation-active) #remindersSection,
+body:not(.navigation-active) #profileEditorCard,
+body:not(.navigation-active) #moreMenu {
+    display: none !important;
+}
+
+/* When Home is selected from the nav, it is still the same clean landing page. */
+body.navigation-active #homeOverview,
+body.navigation-active #dashboardLastVisit {
+    display: block;
+}
+
+@media (max-width: 380px) {
+    .summary.financial-summary {
+        gap: 7px;
+    }
+
+    .financial-summary .summary-card {
+        padding: 12px 5px;
+    }
+
+    .financial-summary .summary-card span {
+        font-size: 19px;
+    }
+
+    .financial-summary .summary-card h3 {
+        font-size: 11px;
+    }
+
+    .financial-summary .summary-card p {
+        font-size: 13px;
+    }
+}
+
+
+/* FINAL DASHBOARD FIX: keep the three financial cards in one row. */
+.summary.financial-summary {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100%;
+    align-items: stretch;
+}
+
+.summary.financial-summary .summary-card {
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+@media (max-width: 360px) {
+    .summary.financial-summary {
+        gap: 7px !important;
+    }
+    .summary.financial-summary .summary-card {
+        padding: 12px 5px;
+    }
+    .summary.financial-summary .summary-card h3 {
+        font-size: 12px;
+    }
+    .summary.financial-summary .summary-card p {
+        font-size: 14px;
+    }
+}
+
+
+/* =========================================================
+   FINAL HOME + STRICT WORKSPACE NAVIGATION
+   Home matches the full landing design. Other tabs contain
+   only their own workspace and never show Home dashboard cards.
+   ========================================================= */
+
+/* Home financial dashboard: two columns, four cards. */
+.summary.financial-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.summary.financial-summary .summary-card {
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* Last visit becomes the fourth card in the same dashboard grid. */
+#dashboardLastVisit {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+/* Keep the existing Home card appearance. */
+body:not(.navigation-active) .modules,
+body[data-navigation="home"] .modules {
+    display: block !important;
+}
+
+body:not(.navigation-active) #cropListSection,
+body[data-navigation="home"] #cropListSection {
+    display: block !important;
+}
+
+/* The complete Home landing page. */
+body:not(.navigation-active) #welcomeCard,
+body:not(.navigation-active) #summary,
+body:not(.navigation-active) #dashboardLastVisit,
+body:not(.navigation-active) #quick-actions,
+body:not(.navigation-active) #cropListSection,
+body:not(.navigation-active) .modules,
+body[data-navigation="home"] #welcomeCard,
+body[data-navigation="home"] #summary,
+body[data-navigation="home"] #dashboardLastVisit,
+body[data-navigation="home"] #quick-actions,
+body[data-navigation="home"] #cropListSection,
+body[data-navigation="home"] .modules {
+    visibility: visible;
+}
+
+/* Every focused workspace hides all Home dashboard content. */
+body[data-navigation="crops"] #welcomeCard,
+body[data-navigation="crops"] #summary,
+body[data-navigation="crops"] #dashboardLastVisit,
+body[data-navigation="crops"] #quick-actions,
+body[data-navigation="crops"] .modules,
+body[data-navigation="animals"] #welcomeCard,
+body[data-navigation="animals"] #summary,
+body[data-navigation="animals"] #dashboardLastVisit,
+body[data-navigation="animals"] #quick-actions,
+body[data-navigation="animals"] .modules,
+body[data-navigation="finance"] #welcomeCard,
+body[data-navigation="finance"] #summary,
+body[data-navigation="finance"] #dashboardLastVisit,
+body[data-navigation="finance"] #quick-actions,
+body[data-navigation="finance"] .modules,
+body[data-navigation="more"] #welcomeCard,
+body[data-navigation="more"] #summary,
+body[data-navigation="more"] #dashboardLastVisit,
+body[data-navigation="more"] #quick-actions,
+body[data-navigation="more"] .modules {
+    display: none !important;
+}
+
+/* The old navigation CSS hid the Farm Records grid globally.
+   It is now a Home-only section. */
+body[data-navigation="crops"] .modules,
+body[data-navigation="animals"] .modules,
+body[data-navigation="finance"] .modules,
+body[data-navigation="more"] .modules {
+    display: none !important;
+}
+
+@media (max-width: 420px) {
+    .summary.financial-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+
+    .financial-summary .summary-card {
+        padding: 16px 10px;
+    }
+}
+
+
+/* =========================================================
+   FINAL HOME DESIGN — MATCH THE APPROVED LANDING SCREEN
+   ========================================================= */
+
+/* Four Home dashboard cards: Expenses, Income, Profit, Last Visit. */
+.summary.financial-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    margin-bottom: 22px;
+}
+
+.summary.financial-summary .summary-card {
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.summary.financial-summary #dashboardLastVisit {
+    display: flex !important;
+    width: auto;
+    min-height: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    gap: 7px;
+    padding: 18px 10px;
+}
+
+.summary.financial-summary #dashboardLastVisit > span {
+    font-size: 28px;
+}
+
+.summary.financial-summary #dashboardLastVisit > div {
+    width: 100%;
+}
+
+.summary.financial-summary #dashboardLastVisit h3 {
+    font-size: 14px;
+    margin: 4px 0;
+}
+
+.summary.financial-summary #dashboardLastVisit p {
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+/* Farm Records is part of Home, but never appears in focused tabs. */
+body:not(.navigation-active) .modules,
+body[data-navigation="home"] .modules {
+    display: block !important;
+}
+
+body[data-navigation="crops"] .modules,
+body[data-navigation="animals"] .modules,
+body[data-navigation="finance"] .modules,
+body[data-navigation="more"] .modules {
+    display: none !important;
+}
+
+/* My Crops is a compact Home section. */
+body:not(.navigation-active) #cropListSection,
+body[data-navigation="home"] #cropListSection {
+    display: block !important;
+}
+
+/* Never carry Home dashboard cards into a focused workspace. */
+body[data-navigation="crops"] #summary,
+body[data-navigation="crops"] #dashboardLastVisit,
+body[data-navigation="crops"] #quick-actions,
+body[data-navigation="crops"] #welcomeCard,
+body[data-navigation="animals"] #summary,
+body[data-navigation="animals"] #dashboardLastVisit,
+body[data-navigation="animals"] #quick-actions,
+body[data-navigation="animals"] #welcomeCard,
+body[data-navigation="finance"] #summary,
+body[data-navigation="finance"] #dashboardLastVisit,
+body[data-navigation="finance"] #quick-actions,
+body[data-navigation="finance"] #welcomeCard,
+body[data-navigation="more"] #summary,
+body[data-navigation="more"] #dashboardLastVisit,
+body[data-navigation="more"] #quick-actions,
+body[data-navigation="more"] #welcomeCard {
+    display: none !important;
+}
+
+/* Home-only sections are hidden in every focused workspace. */
+body[data-navigation="crops"] #cropListSection,
+body[data-navigation="animals"] #cropListSection,
+body[data-navigation="finance"] #cropListSection,
+body[data-navigation="more"] #cropListSection,
+body[data-navigation="crops"] #quick-actions,
+body[data-navigation="animals"] #quick-actions,
+body[data-navigation="finance"] #quick-actions,
+body[data-navigation="more"] #quick-actions {
+    display: none !important;
+}
+
+@media (max-width: 420px) {
+    .summary.financial-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+
+    .summary.financial-summary .summary-card {
+        padding: 16px 8px;
+    }
+}
+
+
+/* HOME-ONLY FINANCIAL DASHBOARD FIX */
+body[data-navigation="crops"] .financial-summary,
+body[data-navigation="animals"] .financial-summary,
+body[data-navigation="finance"] .financial-summary,
+body[data-navigation="more"] .financial-summary {
+    display: none !important;
+}
+
+body:not(.navigation-active) .financial-summary,
+body[data-navigation="home"] .financial-summary {
+    display: grid !important;
+}
+
+
+/* =========================================
+   FarmKeeper v2 workspace organization
+   ========================================= */
+.workspace-intro {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 14px 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+.workspace-intro h2 { margin: 0 0 6px; }
+.workspace-intro p { margin: 0 0 14px; color: #666; }
+.workspace-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.crop-activity-overview {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 14px 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+body:not(.navigation-active) #cropListSection,
+body[data-navigation="home"] #cropListSection,
+body:not(.navigation-active) #cropWorkspaceIntro,
+body[data-navigation="home"] #cropWorkspaceIntro,
+body:not(.navigation-active) #cropActivityOverview,
+body[data-navigation="home"] #cropActivityOverview {
+    display: none !important;
+}
+body[data-navigation="crops"] #cropWorkspaceIntro,
+body[data-navigation="crops"] #cropListSection,
+body[data-navigation="crops"] #cropActivityOverview {
+    display: block !important;
+}
+body[data-navigation="crops"] #cropForm {
+    display: block !important;
+}
+body[data-navigation="crops"] #cropDetailsSection,
+body[data-navigation="crops"] #cropActivityForm {
+    display: none;
+}
+body[data-navigation="home"] .modules,
+body:not(.navigation-active) .modules {
+    display: block !important;
+}
+body[data-navigation="crops"] .modules,
+body[data-navigation="animals"] .modules,
+body[data-navigation="finance"] .modules,
+body[data-navigation="more"] .modules {
+    display: none !important;
+}
+
+
+/* =========================================
+   FarmKeeper crop workspace polish
+   ========================================= */
+body[data-navigation="crops"] #cropForm { display: none !important; }
+body[data-navigation="crops"] #cropListSection,
+body[data-navigation="crops"] #cropWorkspaceIntro,
+body[data-navigation="crops"] #cropActivityOverview { display: block !important; }
+body[data-navigation="crops"] #cropDetailsSection,
+body[data-navigation="crops"] #cropActivityForm { display: none; }
+
+.crop-workspace-intro { margin-top: 18px; }
+.crop-workspace-intro h2 { font-size: 1.35rem; }
+.crop-list-section { margin-top: 12px; }
+.crop-card-enhanced { padding: 16px; border-radius: 16px; margin-bottom: 12px; }
+.crop-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.crop-card-top h3 { margin:0 0 4px; }
+.crop-card-top p { margin:0; color:#666; }
+.crop-status-badge { white-space:nowrap; padding:5px 9px; border-radius:999px; font-size:.78rem; background:#eef6ea; }
+.crop-mini-stats { display:flex; flex-wrap:wrap; gap:8px; margin:13px 0; }
+.crop-mini-stats span { background:#f6f6f6; border-radius:10px; padding:7px 9px; font-size:.82rem; }
+.crop-view-button { width:100%; }
+.crop-empty-state { text-align:center; padding:30px 18px; border:1px dashed #ccc; border-radius:16px; }
+.crop-empty-icon { font-size:2.2rem; }
+.crop-empty-state h3 { margin:8px 0 5px; }
+.crop-empty-state p { color:#666; margin:0 0 16px; }
+.crop-performance { margin-top:18px; padding-top:14px; border-top:1px solid #eee; }
+.crop-performance h3 { margin:0 0 12px; }
+.crop-performance-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.crop-performance-grid > div { text-align:center; padding:12px 7px; border-radius:12px; background:#f7f7f7; }
+.crop-performance-grid strong { display:block; font-size:1.1rem; }
+.crop-performance-grid span { display:block; margin-top:4px; font-size:.75rem; color:#666; }
+.activity-overview-card { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.activity-overview-card p { margin:4px 0 0; }
+@media (max-width:520px) {
+  .crop-performance-grid { grid-template-columns:1fr 1fr 1fr; }
+  .activity-overview-card { align-items:flex-start; flex-direction:column; }
+}
+
+/* FarmKeeper v4 — integrated crop/animal finance workspace */
+.animal-workspace{padding-bottom:24px}.animal-card,.animal-finance-summary,.animal-list-card,.animal-summary-card{background:var(--card-bg,#fff);border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.animal-finance-mini{display:grid;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #eee}.animal-finance-mini span,.animal-finance-mini strong{display:block}.crop-finance{margin-top:16px;padding:14px;border-radius:12px;background:rgba(0,0,0,.025)}
+.crop-performance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.crop-performance-grid>div{padding:10px;border-radius:10px;background:#fff;text-align:center}.crop-performance-grid strong{display:block;font-size:1.05rem}.crop-performance-grid span{display:block;font-size:.78rem;opacity:.75;margin-top:3px}
+@media(max-width:600px){.crop-performance-grid{grid-template-columns:1fr 1fr}.crop-performance-grid>div:last-child{grid-column:1/-1}}
+
+/* =========================================================
+   FarmKeeper v5 — Animal workspace mobile polish
+   ========================================================= */
+.animal-workspace{padding:4px 0 28px}
+.animal-workspace-intro{margin:14px 8px 12px;padding:18px 16px}
+.workspace-eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:#2e7d32;margin-bottom:6px}
+.animal-workspace-intro h2{font-size:1.3rem;margin:0 0 6px}
+.animal-workspace-intro p{font-size:.9rem;line-height:1.45;margin:0;color:#5f695f}
+.animal-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 8px 14px}
+.animal-action-card{appearance:none;border:1px solid #e4ebe4;background:#fff;border-radius:15px;padding:14px 12px;text-align:left;min-height:108px;box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer}
+.animal-action-card:active{transform:scale(.98)}
+.animal-action-card span{display:block;font-size:24px;line-height:1;margin-bottom:9px}
+.animal-action-card strong{display:block;font-size:.91rem;color:#263326;margin-bottom:4px}
+.animal-action-card small{display:block;font-size:.72rem;line-height:1.3;color:#697369}
+.animal-form-card,.animal-list-card,.animal-summary-card{background:#fff;border-radius:16px;margin:12px 8px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.animal-form-card{border:1px solid #e5ebe5}
+.form-card-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.form-card-heading>div{display:flex;align-items:center;gap:8px}.form-card-heading h3{margin:0;font-size:1rem}.form-icon{font-size:20px}
+.form-help{font-size:.78rem;line-height:1.4;color:#6b756b;margin:0 0 14px}
+.icon-close-button{border:0;background:#f3f5f3;color:#5e675e;width:30px;height:30px;border-radius:50%;cursor:pointer}
+.animal-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.animal-form-card .input-group{min-width:0;margin-bottom:12px}
+.animal-form-card label{display:block;font-size:.78rem;font-weight:700;color:#4d584d;margin:0 0 6px}
+.animal-form-card label span{font-weight:400;color:#899089}
+.animal-form-card input,.animal-form-card select,.animal-form-card textarea{display:block;width:100%;max-width:100%;min-width:0;padding:11px 12px;border:1px solid #d8dfd8;border-radius:10px;background:#fff;color:#263326;font:inherit;font-size:.86rem;line-height:1.25;outline:none}
+.animal-form-card input:focus,.animal-form-card select:focus,.animal-form-card textarea:focus{border-color:#2e7d32;box-shadow:0 0 0 2px rgba(46,125,50,.1)}
+.animal-form-card textarea{resize:vertical}
+.animal-form-card .action-button{margin-top:2px;margin-bottom:0;font-size:.9rem;padding:13px}
+.section-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title-row>div{display:flex;align-items:center;gap:9px}.section-title-row>div>span{font-size:21px}.section-title-row h3{margin:0;font-size:1rem}.section-title-row p{margin:3px 0 0;color:#7a837a;font-size:.72rem}
+.animal-list-card #animalList{display:grid;gap:10px}
+.animal-card{margin:0!important;padding:13px!important;border:1px solid #e6ebe6!important;border-radius:13px!important;box-shadow:none!important;background:#fbfcfb!important}
+.animal-card h4{font-size:.95rem!important;margin:0 0 7px!important;color:#263326}
+.animal-card p{font-size:.77rem;line-height:1.35;margin:4px 0!important;color:#566056}
+.animal-card .animal-finance-mini{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #e5e9e5}
+.animal-card .animal-finance-mini span,.animal-card .animal-finance-mini strong{font-size:.75rem!important;margin:0!important}
+.animal-card .animal-finance-mini strong{grid-column:1/-1;font-size:.82rem!important;color:#2e7d32}
+.animal-summary-card{scroll-margin-top:10px}
+.animal-summary-card .crop-performance-grid{margin-top:4px}
+.animal-summary-card .crop-performance-grid>div{border:1px solid #edf0ed;background:#fafbfa}
+/* Poultry is a secondary workspace opened from Animal Management. */
+body[data-navigation="animals"] #poultrySection{display:none!important}
+body[data-navigation="animals"] #animalWorkspace{display:block!important}
+body[data-navigation="animals"] #poultrySection.poultry-open{display:block!important}
+.poultry-section{margin-top:0}
+.poultry-section>h2{font-size:1.3rem}
+.poultry-section .small-button{margin-bottom:12px}
+@media(max-width:420px){
+  .animal-action-grid{gap:8px;margin-left:6px;margin-right:6px}
+  .animal-action-card{min-height:102px;padding:12px 10px}
+  .animal-action-card small{font-size:.68rem}
+  .animal-form-grid{grid-template-columns:1fr}
+  .animal-form-card,.animal-list-card,.animal-summary-card{margin-left:6px;margin-right:6px;padding:14px}
+}
+
+/* =========================================
+   FINANCE WORKSPACE DASHBOARD
+   ========================================= */
+.finance-workspace{max-width:760px;margin:0 auto;padding:12px 8px 110px;}
+.finance-workspace-intro{margin-bottom:12px;}
+.finance-workspace-intro h2{margin:4px 0 6px;font-size:1.35rem;}
+.finance-workspace-intro p{margin:0;color:#526052;line-height:1.35;}
+.finance-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.finance-summary-card{background:#fff;border-radius:14px;padding:12px 8px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid #edf0ed;}
+.finance-summary-card span{display:block;font-size:1.15rem;}
+.finance-summary-card strong{display:block;margin-top:3px;font-size:1rem;word-break:break-word;}
+.finance-summary-card small{display:block;margin-top:2px;color:#697269;}
+.finance-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 14px;}
+.finance-action-card{border:0;background:#fff;border-radius:14px;padding:14px 10px;text-align:left;box-shadow:0 2px 10px rgba(0,0,0,.07);min-height:105px;cursor:pointer;}
+.finance-action-card span{font-size:1.35rem;display:block;margin-bottom:6px;}
+.finance-action-card strong{display:block;font-size:1rem;color:#263126;}
+.finance-action-card small{display:block;color:#697269;line-height:1.25;margin-top:4px;}
+.finance-recent-card{background:#fff;border-radius:14px;padding:14px 12px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.section-heading-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.section-heading-row h3{margin:0;font-size:1rem;}
+.finance-transaction{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid #edf0ed;}
+.finance-transaction:last-child{border-bottom:0;}
+.finance-transaction-icon{font-size:1.1rem;}
+.finance-transaction div{flex:1;min-width:0;}
+.finance-transaction strong,.finance-transaction small{display:block;}
+.finance-transaction strong{font-size:.9rem;}
+.finance-transaction small{font-size:.74rem;color:#707970;margin-top:2px;}
+.finance-transaction b{font-size:.85rem;white-space:nowrap;}
+.finance-in{color:#287c35;}.finance-out{color:#9a3d32;}
+@media(max-width:430px){.finance-action-grid{gap:8px}.finance-action-card{min-height:98px;padding:12px 9px}.finance-summary-card{padding:10px 5px}}
+
+/* Finance detail forms remain available, but are secondary workspaces. */
+#farmExpenseSection,#farmLabourSection,#farmSalesSection{max-width:760px;margin:0 auto;padding:12px 8px 110px;}
+
+
+/* FarmKeeper v8 navigation and form-state fixes */
+body[data-navigation="crops"] #cropForm {
+    display: none !important;
+}
+body[data-navigation="crops"] #cropForm.crop-form-open,
+body[data-navigation="crops"] #cropForm.crop-form-open {
+    display: block !important;
+}
+body[data-navigation="crops"].crop-form-open #cropForm {
+    display: block !important;
+}
+body:not(.navigation-active) #cropForm {
+    display: none !important;
+}
+
+/* =========================================================
+   FarmKeeper v10 — unified Home + Crop workspace UX
+   ========================================================= */
+.home-at-a-glance{background:linear-gradient(180deg,#ffffff 0%,#f8fbf8 100%);border:1px solid #e5ece5;border-radius:20px;padding:16px;margin:0 0 18px;box-shadow:0 4px 16px rgba(35,70,35,.06)}
+.home-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}
+.home-section-heading h2{margin:3px 0 0;font-size:1.05rem;color:#263326}
+.home-eyebrow{font-size:.66rem;font-weight:800;letter-spacing:.1em;color:#2e7d32}
+.home-date{font-size:.72rem;color:#788178;white-space:nowrap}
+.home-glance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.home-glance-card{border:1px solid #e4ebe4;background:#fff;border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;min-width:0;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.home-glance-card:active{transform:scale(.98)}
+.home-glance-card span{display:block;font-size:1.35rem;margin-bottom:5px}
+.home-glance-card strong{display:block;font-size:1.05rem;color:#263326}
+.home-glance-card small{display:block;color:#6f786f;font-size:.7rem;margin-top:3px}
+.quick-actions{margin-bottom:20px}
+.quick-actions .action-button{margin-bottom:8px;padding:13px 14px;text-align:left;border-radius:13px;font-size:.9rem}
+.modules{margin-top:4px}
+.modules h2{font-size:1.05rem}
+.module-grid{gap:9px}
+.module-button{min-height:88px;padding:15px 8px;border:1px solid #e7ece7;box-shadow:0 2px 8px rgba(0,0,0,.045)}
+.module-button:hover,.home-glance-card:hover,.finance-action-card:hover,.animal-action-card:hover{box-shadow:0 5px 14px rgba(35,70,35,.08);transform:translateY(-1px)}
+.crop-form-heading{margin-bottom:14px}
+.crop-form-heading h2{margin:0;font-size:1.05rem}
+.crop-form-heading .form-icon{font-size:20px}
+.crop-form .icon-close-button{flex:0 0 auto}
+.crop-workspace-intro .workspace-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.crop-workspace-intro .workspace-actions .small-button{margin:0;min-height:42px}
+body[data-navigation="crops"] #cropListSection,
+body[data-navigation="crops"] #cropActivityOverview{display:none!important}
+body[data-navigation="crops"] #cropListSection.crop-list-open,
+body[data-navigation="crops"] #cropActivityOverview.crop-overview-open{display:block!important}
+body[data-navigation="crops"] #cropForm.crop-form-open{display:block!important}
+@media(max-width:520px){
+  .home-at-a-glance{padding:14px;margin-bottom:14px;border-radius:17px}
+  .home-glance-grid{gap:7px}
+  .home-glance-card{padding:10px 5px}
+  .home-glance-card span{font-size:1.2rem}
+  .home-glance-card strong{font-size:1rem}
+  .home-glance-card small{font-size:.66rem}
+  .crop-workspace-intro .workspace-actions{grid-template-columns:1fr}
+}
+
+/* FarmKeeper v11 — Daily Activities workspace polish */
+.daily-form-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.daily-form-header h2{margin:0;line-height:1.2}
+.daily-form-header .small-button{margin:0;white-space:nowrap}
+@media(max-width:520px){
+  .daily-form-header{align-items:flex-start;flex-direction:column}
+  .daily-form-header .small-button{width:auto}
+}
+
+/* FarmKeeper v13 authoritative workspace visibility fixes */
+body[data-navigation="crops"] #cropListSection.crop-list-open { display: block !important; }
+body[data-navigation="crops"] #cropActivityOverview.crop-overview-open { display: block !important; }
+body[data-navigation="crops"] #cropForm.crop-form-open { display: block !important; }
+body:not([data-navigation="crops"]) #cropListSection,
+body:not([data-navigation="crops"]) #cropActivityOverview,
+body:not([data-navigation="crops"]) #cropForm { display: none !important; }
+body:not([data-navigation="more"]) #dailyHistorySection { display: none !important; }
+
+
+/* Animal edit/delete controls */
+.animal-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.animal-card-heading h4{margin:0;}
+.animal-card-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.animal-card-actions .small-button{font-size:.78rem;padding:7px 9px;}
+.danger-button{border-color:#e4bcbc !important;color:#a22 !important;background:#fff !important;}
+.animal-form-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+
+/* Phase 2 polish */
+.phase2-section { margin: 16px 0; }
+.search-results-count { font-weight:700; margin:10px 0; }
+.search-result-card { background:#fff; border:1px solid #e3e9e4; border-radius:14px; padding:12px; margin:8px 0; display:grid; gap:4px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+.search-result-card strong { font-size:.85rem; }
+.search-result-card small { color:#6b756d; }
+.farm-photos-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.farm-photo-card { background:#fff; border:1px solid #e3e9e4; border-radius:14px; padding:8px; overflow:hidden; }
+.farm-photo-card img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; display:block; margin-bottom:8px; }
+.farm-photo-card strong,.farm-photo-card small { display:block; padding:0 3px; }
+.farm-photo-card small { color:#6b756d; margin:3px 0 8px; }
+@media (max-width:520px){ .farm-photos-grid{grid-template-columns:1fr 1fr;} }
+
+
+/* Attached photo previews */
+.entity-photos-section { margin-top:18px; padding-top:14px; border-top:1px solid #e3e9e4; }
+.entity-photos-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.entity-photo-item { background:#fff; border:1px solid #e3e9e4; border-radius:12px; padding:6px; overflow:hidden; }
+.entity-photo-item img { width:100%; aspect-ratio:1; object-fit:cover; display:block; border-radius:8px; }
+.entity-photo-item small { display:block; padding:5px 2px 2px; color:#5f6b62; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.animal-photos-inline { margin-top:12px; }
+.animal-photos-inline .entity-photo-item { display:inline-block; width:78px; vertical-align:top; margin-right:6px; }
+.animal-photos-inline .entity-photo-item small { font-size:11px; }
+@media (max-width:520px){ .entity-photos-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
+/* Farm diary and task reminders */
+.visit-diary-card, .reminder-task-card { margin-top: 14px; padding: 16px; border: 1px solid #dfe7df; border-radius: 14px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+.visit-diary-heading, .reminder-task-card { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
+.visit-diary-heading h3 { margin:0; }
+.visit-diary-card p { margin:7px 0; line-height:1.5; }
+.visit-problem { margin:10px 0; padding:10px 12px; border-left:4px solid #e0a100; background:#fff9e8; border-radius:8px; }
+.visit-photos-inline, .animal-photos-inline { margin-top:12px; }
+.visit-photos-inline .entity-photo-item, .animal-photos-inline .entity-photo-item { display:inline-flex; vertical-align:top; flex-direction:column; width:110px; margin:5px; gap:4px; }
+.visit-photos-inline img, .animal-photos-inline img { width:110px; height:90px; object-fit:cover; border-radius:9px; }
+.reminder-task-card.completed { opacity:.65; }
+.reminder-task-card strong { font-size:1rem; }
+.reminder-task-card p { margin:5px 0 0; line-height:1.4; }
+.reminder-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.reminder-card .checkbox-label { display:flex; align-items:center; gap:8px; margin:12px 0; }
+.reminder-card .checkbox-label input { width:auto; }
+
+
+/* FarmKeeper v20 — app-like Home search + reminders */
+.home-search-card,.home-reminders-card{background:#fff;border:1px solid #e5ebe5;border-radius:20px;padding:16px;margin:0 0 16px;box-shadow:0 6px 20px rgba(35,70,35,.06)}
+.home-search-card .home-section-heading,.home-reminders-card .home-section-heading{margin-bottom:12px}
+.home-search-icon{font-size:1.6rem;color:#2e7d32;opacity:.8}
+.home-search-bar{display:flex;align-items:center;gap:9px;background:#f5f8f5;border:1px solid #e1e8e1;border-radius:15px;padding:0 12px;min-height:50px}
+.home-search-bar>span{font-size:1rem;opacity:.75}
+.home-search-bar input{flex:1;border:0!important;background:transparent!important;outline:0!important;padding:12px 0!important;min-width:0;font-size:.9rem;box-shadow:none!important}
+.home-search-bar button{border:0;background:transparent;color:#788178;font-size:1.35rem;line-height:1;cursor:pointer;padding:5px}
+.home-search-results{margin-top:9px}
+.home-search-hint{margin:8px 2px 2px;color:#7a847b;font-size:.76rem;line-height:1.45}
+.home-search-result{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:10px 2px;border-top:1px solid #edf1ed}
+.home-search-result-type{font-size:.68rem;color:#2e7d32;font-weight:800;white-space:nowrap}
+.home-search-result strong{font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-search-result small{font-size:.67rem;color:#818a82}
+.home-reminders-card{padding-bottom:10px}
+.home-section-link{border:0;background:transparent;color:#2e7d32;font-size:.75rem;font-weight:800;padding:4px 0;cursor:pointer}
+.home-reminder-list{display:grid;gap:6px}
+.home-reminder-row{width:100%;display:grid;grid-template-columns:34px 1fr 18px;align-items:center;text-align:left;gap:8px;border:1px solid #e8eee8;background:#f8fbf8;border-radius:14px;padding:10px 11px;cursor:pointer}
+.home-reminder-row:active{transform:scale(.99)}
+.home-reminder-bell{width:30px;height:30px;display:grid;place-items:center;background:#edf6ed;border-radius:10px;font-size:.9rem}
+.home-reminder-copy{min-width:0;display:grid;gap:2px}
+.home-reminder-copy strong{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#293329}
+.home-reminder-copy small{font-size:.69rem;color:#2e7d32;font-weight:700}
+.home-reminder-arrow{font-size:1.25rem;color:#96a096;text-align:right}
+.home-empty-reminders{display:flex;align-items:center;gap:10px;padding:10px 2px 4px}
+.home-empty-reminders>span{font-size:1.5rem}
+.home-empty-reminders div{flex:1;min-width:0;display:grid;gap:2px}
+.home-empty-reminders strong{font-size:.82rem;color:#303830}
+.home-empty-reminders small{font-size:.69rem;color:#7a847b;line-height:1.35}
+.home-reminder-add{border:1px solid #cfe0cf;background:#eef7ee;color:#2e7d32;border-radius:10px;padding:8px 9px;font-weight:800;font-size:.7rem;white-space:nowrap;cursor:pointer}
+@media(max-width:520px){.home-search-card,.home-reminders-card{border-radius:17px;padding:14px;margin-bottom:13px}.home-search-bar{min-height:48px}.home-search-result{grid-template-columns:1fr auto}.home-search-result-type{grid-column:1/-1}.home-search-result strong{font-size:.78rem}.home-empty-reminders small{font-size:.66rem}}
+
+
+/* =========================================================
+   FARMKEEPER V21 CLEANUP
+   One final source of truth for dashboard/workspace layout.
+   ========================================================= */
+
+/* Home is a compact dashboard; full forms open only in workspaces. */
+body:not(.navigation-active) #visitForm,
+body:not(.navigation-active) #dailyForm,
+body:not(.navigation-active) #dailyHistorySection,
+body:not(.navigation-active) #cropForm,
+body:not(.navigation-active) #cropListSection,
+body:not(.navigation-active) #cropDetailsSection,
+body:not(.navigation-active) #cropActivityForm,
+body:not(.navigation-active) #poultrySection,
+body:not(.navigation-active) #farmExpenseSection,
+body:not(.navigation-active) #farmLabourSection,
+body:not(.navigation-active) #farmSalesSection,
+body:not(.navigation-active) #reportsSection,
+body:not(.navigation-active) #remindersSection,
+body:not(.navigation-active) #profileEditorCard,
+body:not(.navigation-active) #moreMenu {
+    display: none !important;
+}
+
+/* Prevent hidden Home dashboard cards from leaking into workspaces. */
+body.navigation-active #welcomeCard,
+body.navigation-active #summary,
+body.navigation-active #dashboardLastVisit,
+body.navigation-active #homeAtAGlance,
+body.navigation-active #homeSearchCard,
+body.navigation-active #homeRemindersCard,
+body.navigation-active #quick-actions,
+body.navigation-active .modules {
+    display: none !important;
+}
+
+/* Focused More/Daily workspace. */
+body[data-navigation="more"] #moreMenu {
+    display: block;
+}
+
+body[data-navigation="more"] #dailyForm {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Consistent financial dashboard cards. */
+.summary.financial-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.summary.financial-summary .summary-card {
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+@media (max-width: 420px) {
+    .summary.financial-summary {
+        gap: 10px !important;
+    }
+
+    .summary.financial-summary .summary-card {
+        padding: 12px 9px;
+    }
+
+    .summary.financial-summary .summary-card h3 {
+        font-size: 11px;
+    }
+
+    .summary.financial-summary .summary-card p {
+        font-size: 14px;
+    }
+}
+
+/* Touch-friendly controls and consistent card rhythm. */
+.quick-actions .action-button,
+.home-search-bar,
+.home-reminder-row,
+.home-glance-card {
+    border-radius: 14px;
+}
+
+.quick-actions .action-button {
+    min-height: 48px;
+}
+
+.daily-form,
+.daily-history-section,
+.visit-form {
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   FARMKEEPER — APPROVED HOME NAVIGATION STATE
+   Home always restores the complete dashboard shown in the
+   approved Home screen. Other bottom-nav tabs remain focused.
+   ========================================================= */
+
+body.navigation-active[data-navigation="home"] #welcomeCard,
+body.navigation-active[data-navigation="home"] #summary,
+body.navigation-active[data-navigation="home"] #dashboardLastVisit,
+body.navigation-active[data-navigation="home"] #homeAtAGlance,
+body.navigation-active[data-navigation="home"] #homeSearchCard,
+body.navigation-active[data-navigation="home"] #homeRemindersCard,
+body.navigation-active[data-navigation="home"] #quick-actions,
+body.navigation-active[data-navigation="home"] .modules {
+    display: block !important;
+    visibility: visible !important;
+}
+
+body.navigation-active[data-navigation="home"] #summary {
+    display: grid !important;
+}
+
+body.navigation-active[data-navigation="home"] #dashboardLastVisit {
+    display: flex !important;
+}
+
+body.navigation-active[data-navigation="home"] .modules {
+    display: grid !important;
+}
+
+body.navigation-active[data-navigation="home"] #cropListSection {
+    display: block !important;
+}
+
+/* Focused workspaces never show the Home dashboard. */
+body.navigation-active[data-navigation="crops"] #welcomeCard,
+body.navigation-active[data-navigation="crops"] #summary,
+body.navigation-active[data-navigation="crops"] #dashboardLastVisit,
+body.navigation-active[data-navigation="crops"] #homeAtAGlance,
+body.navigation-active[data-navigation="crops"] #homeSearchCard,
+body.navigation-active[data-navigation="crops"] #homeRemindersCard,
+body.navigation-active[data-navigation="crops"] #quick-actions,
+body.navigation-active[data-navigation="crops"] .modules,
+body.navigation-active[data-navigation="animals"] #welcomeCard,
+body.navigation-active[data-navigation="animals"] #summary,
+body.navigation-active[data-navigation="animals"] #dashboardLastVisit,
+body.navigation-active[data-navigation="animals"] #homeAtAGlance,
+body.navigation-active[data-navigation="animals"] #homeSearchCard,
+body.navigation-active[data-navigation="animals"] #homeRemindersCard,
+body.navigation-active[data-navigation="animals"] #quick-actions,
+body.navigation-active[data-navigation="animals"] .modules,
+body.navigation-active[data-navigation="finance"] #welcomeCard,
+body.navigation-active[data-navigation="finance"] #summary,
+body.navigation-active[data-navigation="finance"] #dashboardLastVisit,
+body.navigation-active[data-navigation="finance"] #homeAtAGlance,
+body.navigation-active[data-navigation="finance"] #homeSearchCard,
+body.navigation-active[data-navigation="finance"] #homeRemindersCard,
+body.navigation-active[data-navigation="finance"] #quick-actions,
+body.navigation-active[data-navigation="finance"] .modules,
+body.navigation-active[data-navigation="more"] #welcomeCard,
+body.navigation-active[data-navigation="more"] #summary,
+body.navigation-active[data-navigation="more"] #dashboardLastVisit,
+body.navigation-active[data-navigation="more"] #homeAtAGlance,
+body.navigation-active[data-navigation="more"] #homeSearchCard,
+body.navigation-active[data-navigation="more"] #homeRemindersCard,
+body.navigation-active[data-navigation="more"] #quick-actions,
+body.navigation-active[data-navigation="more"] .modules {
+    display: none !important;
+}
+
+/* Keep the bottom navigation visible while the full Home dashboard scrolls. */
+body {
+    padding-bottom: 92px;
+}
+
+/* =========================================================
+   FARMKEEPER V21 — FINAL MOBILE HOME UI PASS
+   Visual baseline: the approved 342px Home screen.
+   These rules are intentionally Home-scoped so workspaces
+   keep their existing layouts.
+   ========================================================= */
+
+@media (max-width: 699px) {
+  body {
+    background: #f4f7f4;
+    padding-bottom: 92px;
+    overflow-x: hidden;
+  }
+
+  /* Brand header */
+  body:not([data-navigation]) .app-header,
+  body.navigation-active[data-navigation="home"] .app-header {
+    min-height: 116px;
+    height: 116px;
+    padding: 22px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-header h1 {
+    font-size: 29px;
+    line-height: 1.05;
+    margin-bottom: 6px;
+  }
+
+  .app-header p {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  /* Home sections are deliberately full-width, matching an app canvas. */
+  body.navigation-active[data-navigation="home"] #welcomeCard,
+  body.navigation-active[data-navigation="home"] #summary,
+  body.navigation-active[data-navigation="home"] #homeAtAGlance,
+  body.navigation-active[data-navigation="home"] #homeSearchCard,
+  body.navigation-active[data-navigation="home"] #homeRemindersCard,
+  body.navigation-active[data-navigation="home"] #quick-actions,
+  body.navigation-active[data-navigation="home"] .modules,
+  body:not(.navigation-active) #welcomeCard,
+  body:not(.navigation-active) #summary,
+  body:not(.navigation-active) #homeAtAGlance,
+  body:not(.navigation-active) #homeSearchCard,
+  body:not(.navigation-active) #homeRemindersCard,
+  body:not(.navigation-active) #quick-actions,
+  body:not(.navigation-active) .modules {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  /* Welcome card */
+  body.navigation-active[data-navigation="home"] #welcomeCard,
+  body:not(.navigation-active) #welcomeCard {
+    min-height: 139px;
+    margin: 0 0 22px;
+    padding: 34px 20px 24px;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 5px 16px rgba(35,70,35,.07);
+    text-align: center;
+  }
+
+  .welcome-card h2 {
+    font-size: 26px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .welcome-card p {
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  /* Four financial cards: two clean rows. */
+  body.navigation-active[data-navigation="home"] #summary,
+  body:not(.navigation-active) #summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin: 0 0 10px;
+  }
+
+  body.navigation-active[data-navigation="home"] #summary .summary-card,
+  body:not(.navigation-active) #summary .summary-card {
+    min-height: 97px;
+    padding: 14px 8px;
+    border-radius: 16px;
+    box-shadow: 0 3px 11px rgba(35,70,35,.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.navigation-active[data-navigation="home"] #summary .summary-card span,
+  body:not(.navigation-active) #summary .summary-card span {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  body.navigation-active[data-navigation="home"] #summary .summary-card h3,
+  body:not(.navigation-active) #summary .summary-card h3 {
+    font-size: 13px;
+    margin: 7px 0 4px;
+  }
+
+  body.navigation-active[data-navigation="home"] #summary .summary-card p,
+  body:not(.navigation-active) #summary .summary-card p {
+    font-size: 15px;
+    line-height: 1.15;
+  }
+
+  /* Farm at a glance */
+  body.navigation-active[data-navigation="home"] #homeAtAGlance,
+  body:not(.navigation-active) #homeAtAGlance {
+    margin: 0 0 15px;
+    padding: 16px;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(35,70,35,.055);
+  }
+
+  .home-section-heading {
+    margin-bottom: 13px;
+  }
+
+  .home-section-heading h2 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .home-eyebrow {
+    font-size: 10px;
+    letter-spacing: .11em;
+  }
+
+  .home-glance-grid {
+    gap: 8px;
+  }
+
+  .home-glance-card {
+    min-height: 90px;
+    padding: 10px 5px;
+    border-radius: 14px;
+  }
+
+  .home-glance-card span {
+    font-size: 23px;
+    margin-bottom: 4px;
+  }
+
+  .home-glance-card strong {
+    font-size: 17px;
+  }
+
+  .home-glance-card small {
+    font-size: 10px;
+  }
+
+  /* Search */
+  body.navigation-active[data-navigation="home"] #homeSearchCard,
+  body:not(.navigation-active) #homeSearchCard {
+    margin: 0 0 15px;
+    padding: 16px;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(35,70,35,.055);
+  }
+
+  .home-search-bar {
+    min-height: 50px;
+    border-radius: 14px;
+    padding: 0 12px;
+  }
+
+  .home-search-bar input {
+    font-size: 15px;
+  }
+
+  /* Reminders */
+  body.navigation-active[data-navigation="home"] #homeRemindersCard,
+  body:not(.navigation-active) #homeRemindersCard {
+    margin: 0 0 17px;
+    padding: 16px 16px 12px;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(35,70,35,.055);
+  }
+
+  .home-empty-reminders {
+    padding: 12px 2px 5px;
+  }
+
+  .home-reminder-add {
+    min-height: 38px;
+    padding: 8px 11px;
+  }
+
+  /* Quick actions */
+  body.navigation-active[data-navigation="home"] #quick-actions,
+  body:not(.navigation-active) #quick-actions {
+    margin: 0 0 25px;
+  }
+
+  .quick-actions .home-section-heading {
+    padding: 0;
+    margin-bottom: 12px;
+  }
+
+  .quick-actions .action-button {
+    min-height: 51px;
+    margin: 0 0 8px;
+    padding: 13px 16px;
+    border-radius: 13px;
+    font-size: 15px;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(35,70,35,.08);
+  }
+
+  /* Farm Records */
+  body.navigation-active[data-navigation="home"] .modules,
+  body:not(.navigation-active) .modules {
+    margin: 0 0 18px;
+    padding: 0;
+  }
+
+  body.navigation-active[data-navigation="home"] .modules h2,
+  body:not(.navigation-active) .modules h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+  }
+
+  body.navigation-active[data-navigation="home"] .module-grid,
+  body:not(.navigation-active) .module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  body.navigation-active[data-navigation="home"] .module-button,
+  body:not(.navigation-active) .module-button {
+    min-height: 99px;
+    padding: 16px 8px;
+    border-radius: 16px;
+    font-size: 29px;
+    box-shadow: 0 3px 10px rgba(35,70,35,.06);
+  }
+
+  body.navigation-active[data-navigation="home"] .module-button span,
+  body:not(.navigation-active) .module-button span {
+    margin-top: 7px;
+    font-size: 15px;
+  }
+
+  /* Footer stays above the fixed navigation. */
+  body.navigation-active[data-navigation="home"] footer,
+  body:not(.navigation-active) footer {
+    padding: 8px 20px 104px;
+    font-size: 13px;
+  }
+
+  /* Bottom navigation: compact, app-like, always reachable. */
+  .bottom-nav {
+    height: 68px;
+    min-height: 68px;
+    background: rgba(255,255,255,.98);
+    box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+  }
+
+  .bottom-nav-item span {
+    font-size: 21px;
+  }
+
+  .bottom-nav-item small {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 360px) {
+  .welcome-card h2 { font-size: 24px; }
+  .welcome-card p { font-size: 16px; }
+  body.navigation-active[data-navigation="home"] #summary .summary-card,
+  body:not(.navigation-active) #summary .summary-card { min-height: 96px; }
+  body.navigation-active[data-navigation="home"] .module-button,
+  body:not(.navigation-active) .module-button { min-height: 96px; }
+}
+
+
+/* =========================================================
+   FINANCIAL SEMANTIC COLORS
+   Positive profit = green, negative values/losses = red.
+   Neutral zero values retain the normal text color.
+   ========================================================= */
+.financial-positive {
+    color: #2e7d32 !important;
+}
+
+.financial-negative {
+    color: #c62828 !important;
+}
+
+.financial-neutral {
+    color: inherit;
+}
+
+/* Make the meaning especially clear in compact financial cards. */
+.summary.financial-summary #dashboardProfit.financial-positive,
+.finance-summary-card #financeProfitTotal.financial-positive {
+    color: #2e7d32 !important;
+}
+
+.summary.financial-summary #dashboardProfit.financial-negative,
+.finance-summary-card #financeProfitTotal.financial-negative {
+    color: #c62828 !important;
+}
+
+.animal-finance-mini strong.financial-negative,
+.crop-performance-grid strong.financial-negative,
+.report-total strong.financial-negative {
+    color: #c62828 !important;
+}
+
+.animal-finance-mini strong.financial-positive,
+.crop-performance-grid strong.financial-positive,
+.report-total strong.financial-positive {
+    color: #2e7d32 !important;
+}

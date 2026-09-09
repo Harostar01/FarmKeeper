@@ -4,12 +4,25 @@ let editingExpenseRecordId = null;
 let editingLabourRecordId = null;
 let editingSalesRecordId = null;
 let editingDailyRecordId = null;
+let farmKeeperProfile = null;
+let savingCropRecord = false;
+let cropCleanupPromise = null;
+let cropListLoadPromise = null;
+let cropListRenderToken = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
         await openDatabase();
+        await dedupeCropRecords();
+        await migrateLegacyFinanceRecords();
+        await setupUserProfile();
+
+        setupProfileEditor();
+        setupBottomNavigation();
+setupHomeSearch();
+        setupPhase2Features();
 
         console.log("🌱 FarmKeeper is ready.");
 
@@ -17,22 +30,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupCropForm();
         setupCropNavigation();
         setupCropActivityForm();
+        setupCropWorkspace();
         setupFlockForm();
+        setupAnimalWorkspace();
         setupPoultryNavigation();
         setupEggProductionForm();
         setupExpenseNavigation();
         setupExpenseForm();
         setupLabourForm();
         setupSalesForm();
+        await setupFinanceWorkspace();
+        await populateFinanceEntitySelectors();
+        await Promise.all([loadLabourHistory(), loadSalesHistory()]);
         updateFinancialSummary();
         setupReportsNavigation();
         setupReportGenerator();
-        loadCropList();
         setupReminderNavigation();
         setupReminderForm();
+        setupReminderNotificationButton();
+        checkTaskReminders();
         checkDailyRecordReminder();
+        setupDailyRecord();
         setupDailyHistoryNavigation();
         updateLastVisit();
+        loadVisitHistory();
+        populateReminderTargets();
+        loadReminders();
 
     } catch (error) {
 
@@ -44,193 +67,65 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 function setupVisitForm() {
+    const recordVisitButton=document.getElementById("recordVisitButton");
+    const saveVisitButton=document.getElementById("saveVisitButton");
+    const back=document.getElementById("visitBackButton");
+    recordVisitButton?.addEventListener("click",()=>{ showMorePanel("visit"); setCurrentDateTime(); loadVisitHistory(); });
+    saveVisitButton?.addEventListener("click",saveFarmVisit);
+    back?.addEventListener("click",()=>showMorePanel("menu"));
+}
+function setCurrentDateTime(){ const now=new Date(); document.getElementById("visitDate").value=now.toISOString().split("T")[0]; document.getElementById("visitTime").value=now.toTimeString().slice(0,5); }
+function clearVisitForm(){ ["visitLocation","visitWeather","visitCropObservations","visitAnimalObservations","visitProblems","visitNotes","visitExpenseAmount","visitExpenseDetails"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";}); const photo=document.getElementById("visitPhotoInput");if(photo)photo.value=""; }
+function readFilesAsDataUrls(files){ return Promise.all(Array.from(files||[]).map(file=>new Promise((resolve,reject)=>{ if(!file.type.startsWith("image/")) return reject(new Error("Only image files are allowed.")); if(file.size>5*1024*1024) return reject(new Error("Each photo must be smaller than 5 MB.")); const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=()=>reject(r.error||new Error("Could not read photo.")); r.readAsDataURL(file);}))); }
+async function saveFarmVisit(){
+    const date=document.getElementById("visitDate")?.value, time=document.getElementById("visitTime")?.value||"";
+    if(!date){alert("Please select the visit date.");return;}
+    const visit={date,time,location:document.getElementById("visitLocation")?.value.trim()||"",weather:document.getElementById("visitWeather")?.value.trim()||"",cropObservations:document.getElementById("visitCropObservations")?.value.trim()||"",animalObservations:document.getElementById("visitAnimalObservations")?.value.trim()||"",problems:document.getElementById("visitProblems")?.value.trim()||"",notes:document.getElementById("visitNotes")?.value.trim()||"",expenseAmount:Number(document.getElementById("visitExpenseAmount")?.value)||0,expenseDetails:document.getElementById("visitExpenseDetails")?.value.trim()||"",createdAt:new Date().toISOString()};
+    const files=document.getElementById("visitPhotoInput")?.files||[];
+    if(visit.expenseAmount>0 && !visit.expenseDetails){alert("Please describe the expense made.");return;}
+    try{
+        const visitId=await addRecord("visits",visit);
+        if(visit.expenseAmount>0){ await addRecord("expenses",{date:visit.date,description:visit.expenseDetails,amount:visit.expenseAmount,category:"Farm Visit",linkedEntity:{kind:"visit",id:visitId},source:"farmVisit",createdAt:visit.createdAt}); }
+        if(files.length){ const urls=await readFilesAsDataUrls(files); for(const dataUrl of urls) await addRecord("photos",{target:`visit:${visitId}`,caption:`Farm visit — ${visit.date}`,dataUrl,createdAt:new Date().toISOString()}); }
+        alert("✅ Farm visit saved successfully!"); clearVisitForm(); setCurrentDateTime(); await updateLastVisit(); await loadVisitHistory();
+    }catch(e){console.error("Error saving farm visit:",e);alert(`❌ Could not save the farm visit. ${e.message||""}`);}
+}
+async function updateLastVisit(){ try{ const visits=await getAllRecords("visits"); if(!visits.length)return; visits.sort((a,b)=>new Date(`${b.date}T${b.time||"00:00"}`)-new Date(`${a.date}T${a.time||"00:00"}`)); const el=document.getElementById("dashboardLastVisitText"); if(el)el.textContent=formatVisitDate(visits[0].date); }catch(e){console.error("Could not update last visit:",e);} }
+function formatVisitDate(dateString){ const date=new Date(dateString+"T00:00:00"),today=new Date(); const ds=date.toISOString().split("T")[0],ts=today.toISOString().split("T")[0]; if(ds===ts)return"Today"; const yesterday=new Date(today);yesterday.setDate(today.getDate()-1);if(ds===yesterday.toISOString().split("T")[0])return"Yesterday";return date.toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"}); }
+async function loadVisitHistory(){
+    const out=document.getElementById("visitHistory");if(!out)return;
+    try{ const visits=await getAllRecords("visits"); visits.sort((a,b)=>new Date(`${b.date}T${b.time||"00:00"}`)-new Date(`${a.date}T${a.time||"00:00"}`)); if(!visits.length){out.innerHTML='<p class="empty-message">No farm visits recorded yet.</p>';return;}
+        out.innerHTML=visits.map(v=>`<article class="visit-diary-card"><div class="visit-diary-heading"><h3>📍 Farm Visit — ${formatVisitDate(v.date)}</h3><button type="button" class="small-button danger-button" onclick="deleteFarmVisit(${Number(v.id)})">🗑️ Delete</button></div><p><strong>📅</strong> ${escapeHtml(v.date)}${v.time?` at ${escapeHtml(v.time)}`:""}</p>${v.location?`<p>📍 <strong>Location:</strong> ${escapeHtml(v.location)}</p>`:""}${v.weather?`<p>🌦️ <strong>Weather:</strong> ${escapeHtml(v.weather)}</p>`:""}${v.cropObservations?`<div><strong>🌱 Crop observations</strong><p>${escapeHtml(v.cropObservations)}</p></div>`:""}${v.animalObservations?`<div><strong>🐔 Animal observations</strong><p>${escapeHtml(v.animalObservations)}</p></div>`:""}${v.problems?`<div class="visit-problem"><strong>⚠️ Problems discovered</strong><p>${escapeHtml(v.problems)}</p></div>`:""}${v.notes?`<div><strong>📝 Notes</strong><p>${escapeHtml(v.notes)}</p></div>`:""}${v.expenseAmount?`<p>💰 <strong>Expense:</strong> ₦${Number(v.expenseAmount).toLocaleString("en-NG")}${v.expenseDetails?` — ${escapeHtml(v.expenseDetails)}`:""}</p>`:""}<div id="visitPhotos-${Number(v.id)}" class="visit-photos-inline"><small>📷 Loading photos...</small></div></article>`).join("");
+        await Promise.all(visits.map(async v=>{const c=document.getElementById(`visitPhotos-${Number(v.id)}`);if(c)renderEntityPhotos(c,await getPhotosForTarget(`visit:${v.id}`));}));
+    }catch(e){console.error("Could not load visit history",e);}
+}
+async function deleteFarmVisit(id){ if(!confirm("Delete this farm visit? Its visit photos will also be deleted. The linked Finance expense will remain in Finance."))return; try{ const photos=await getPhotosForTarget(`visit:${id}`); for(const photo of photos)await deleteRecord("photos",photo.id); await deleteRecord("visits",Number(id)); await loadVisitHistory(); await updateLastVisit(); alert("🗑️ Farm visit deleted."); }catch(e){console.error(e);alert("❌ Could not delete farm visit.");} }
 
-    const recordVisitButton =
-        document.getElementById("recordVisitButton");
+function openDailyRecordWorkspace() {
+    const nav = document.getElementById("bottomNav");
+    const form = document.getElementById("dailyForm");
+    const history = document.getElementById("dailyHistorySection");
+    const moreMenu = document.getElementById("moreMenu");
 
-    const visitForm =
-        document.getElementById("visitForm");
+    hideAllNavigationPanels();
 
-    const saveVisitButton =
-        document.getElementById("saveVisitButton");
+    document.body.classList.add("navigation-active");
+    document.body.dataset.navigation = "more";
 
-
-    recordVisitButton.addEventListener("click", () => {
-
-        visitForm.style.display = "block";
-
-        visitForm.scrollIntoView({
-            behavior: "smooth"
-        });
-
-        setCurrentDateTime();
-
+    nav?.querySelectorAll(".bottom-nav-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.nav === "more");
     });
 
+    if (moreMenu) moreMenu.style.display = "block";
+    if (history) history.style.display = "none";
+    if (form) form.style.display = "block";
 
-    saveVisitButton.addEventListener("click", saveFarmVisit);
-   
-    setupDailyRecord();
-}
-
-
-function setCurrentDateTime() {
-
-    const now = new Date();
-
-    const date =
-        now.toISOString().split("T")[0];
-
-    const time =
-        now.toTimeString().slice(0, 5);
-
-
-    document.getElementById("visitDate").value = date;
-
-    document.getElementById("visitTime").value = time;
-
-}
-
-async function saveFarmVisit() {
-
-    const date =
-        document.getElementById("visitDate").value;
-
-    const time =
-        document.getElementById("visitTime").value;
-
-    const notes =
-        document.getElementById("visitNotes").value.trim();
-
-
-    if (!date) {
-
-        alert("Please select the visit date.");
-
-        return;
+    const date = document.getElementById("dailyDate");
+    if (date && !date.value) {
+        date.value = new Date().toISOString().split("T")[0];
     }
 
-
-    const visit = {
-
-        date: date,
-
-        time: time,
-
-        notes: notes,
-
-        createdAt: new Date().toISOString()
-
-    };
-
-
-    try {
-
-        await addRecord("visits", visit);
-
-        alert("✅ Farm visit saved successfully!");
-
-        console.log("Farm visit saved:", visit);
-
-
-        // Clear the form
-        document.getElementById("visitNotes").value = "";
-
-
-        // Hide the form
-        document.getElementById("visitForm").style.display = "none";
-
-
-        // Update dashboard
-        updateLastVisit();
-
-    } catch (error) {
-
-        console.error("Error saving farm visit:", error);
-
-        alert("❌ Could not save the farm visit.");
-
-    }
-
-}
-
-
-async function updateLastVisit() {
-
-    try {
-
-        const visits = await getAllRecords("visits");
-
-        if (visits.length === 0) {
-            return;
-        }
-
-
-        // Sort visits from newest to oldest
-        visits.sort((a, b) => {
-
-            const dateA =
-                new Date(`${a.date}T${a.time}`);
-
-            const dateB =
-                new Date(`${b.date}T${b.time}`);
-
-            return dateB - dateA;
-
-        });
-
-
-        const latestVisit = visits[0];
-
-
-        const lastVisitElement =
-            document.querySelector(
-                ".summary-card:nth-child(4) p"
-            );
-
-
-        lastVisitElement.textContent =
-            formatVisitDate(latestVisit.date);
-
-
-    } catch (error) {
-
-        console.error(
-            "Could not update last visit:",
-            error
-        );
-
-    }
-
-}
-
-
-function formatVisitDate(dateString) {
-
-    const date = new Date(dateString + "T00:00:00");
-
-    const today = new Date();
-
-    const todayString =
-        today.toISOString().split("T")[0];
-
-
-    if (dateString === todayString) {
-
-        return "Today";
-
-    }
-
-
-    return date.toLocaleDateString(
-        "en-NG",
-        {
-            day: "numeric",
-            month: "short",
-            year: "numeric"
-        }
-    );
-
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function setupDailyRecord() {
@@ -243,16 +138,11 @@ function setupDailyRecord() {
 
     const saveButton =
         document.getElementById("saveDailyButton");
+    const backButton = document.getElementById("dailyFormBackButton");
 
 
-    dailyButton.addEventListener("click", () => {
-
-        dailyForm.style.display = "block";
-
-        dailyForm.scrollIntoView({
-            behavior: "smooth"
-        });
-
+    dailyButton?.addEventListener("click", () => {
+        openDailyRecordWorkspace();
 
         const today =
             new Date().toISOString().split("T")[0];
@@ -262,10 +152,19 @@ function setupDailyRecord() {
     });
 
 
-    saveButton.addEventListener(
+    saveButton?.addEventListener(
         "click",
         saveDailyRecord
     );
+
+    backButton?.addEventListener("click", () => {
+        dailyForm.style.display = "none";
+        const history = document.getElementById("dailyHistorySection");
+        if (history) history.style.display = "none";
+        const moreMenu = document.getElementById("moreMenu");
+        if (moreMenu) moreMenu.style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
 }
 
@@ -505,7 +404,7 @@ async function checkDailyRecordReminder() {
         }
 
 
-        const reminder = reminders[0];
+        const reminder = reminders.find(item => item.type === "dailyRecord") || null;
 
 
         // Reminder is disabled
@@ -522,6 +421,12 @@ async function checkDailyRecordReminder() {
         // Check whether today's record already exists
         const dailyRecords =
             await getAllRecords("dailyRecords");
+
+        const animals =
+            await getAllRecords("animals");
+
+        const crops =
+            await getAllRecords("crops");
 
 
         const todayRecord =
@@ -616,94 +521,152 @@ async function checkDailyRecordReminder() {
 
 }
 
+async function dedupeCropRecords() {
+    // Run cleanup only once at a time. Older versions could start multiple
+    // cleanups concurrently, which made one delete appear to remove two crops.
+    if (cropCleanupPromise) return cropCleanupPromise;
+
+    cropCleanupPromise = (async () => {
+        try {
+            const crops = await getAllRecords("crops");
+            if (crops.length < 2) return;
+
+            const normalize = value => String(value ?? "")
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, " ");
+
+            // This is deliberately based only on what the user sees as the
+            // crop identity. It catches duplicates created by older versions
+            // even when their timestamps/extra fields differ.
+            const cropKey = crop => [
+                normalize(crop.cropName),
+                normalize(crop.variety),
+                normalize(crop.plot),
+                normalize(crop.plantingDate),
+                String(Number(crop.quantityPlanted || 0)),
+                normalize(crop.cropUnit)
+            ].join("|");
+
+            const groups = new Map();
+            for (const crop of crops) {
+                const key = cropKey(crop);
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(crop);
+            }
+
+            const duplicateGroups = [...groups.values()].filter(group => group.length > 1);
+            if (!duplicateGroups.length) return;
+
+            const [activities, expenses, labour, sales] = await Promise.all([
+                getAllRecords("cropActivities"),
+                getAllRecords("expenses"),
+                getAllRecords("labour"),
+                getAllRecords("sales")
+            ]);
+
+            let removed = 0;
+            for (const records of duplicateGroups) {
+                records.sort((a, b) => {
+                    const aId = Number(a.id), bId = Number(b.id);
+                    if (Number.isFinite(aId) && Number.isFinite(bId)) return aId - bId;
+                    return String(a.id).localeCompare(String(b.id));
+                });
+
+                const keeper = records[0];
+                const duplicateIds = new Set(records.slice(1).map(c => String(c.id)));
+
+                for (const activity of activities) {
+                    if (duplicateIds.has(String(activity.cropId))) {
+                        await updateRecord("cropActivities", { ...activity, cropId: keeper.id });
+                    }
+                }
+
+                for (const [storeName, rows] of [["expenses", expenses], ["labour", labour], ["sales", sales]]) {
+                    for (const row of rows) {
+                        const linkedId = row.linkedEntity?.kind === "crop" ? row.linkedEntity.id : row.cropId;
+                        if (duplicateIds.has(String(linkedId))) {
+                            const updated = { ...row };
+                            if (updated.linkedEntity?.kind === "crop") {
+                                updated.linkedEntity = { ...updated.linkedEntity, id: keeper.id };
+                            }
+                            if (updated.cropId !== undefined) updated.cropId = keeper.id;
+                            await updateRecord(storeName, updated);
+                        }
+                    }
+                }
+
+                // Delete duplicates one-by-one, never delete the keeper.
+                for (const duplicate of records.slice(1)) {
+                    await deleteRecord("crops", duplicate.id);
+                    removed++;
+                }
+            }
+
+            console.log(`🌱 Crop cleanup removed ${removed} duplicate record(s).`);
+        } catch (error) {
+            console.error("Could not clean duplicate crop records:", error);
+        } finally {
+            cropCleanupPromise = null;
+        }
+    })();
+
+    return cropCleanupPromise;
+}
+
 function setupCropForm() {
+    const cropButton = document.getElementById("cropButton");
+    const cropForm = document.getElementById("cropForm");
+    const addCropButton = document.getElementById("addCropButton");
+    const workspaceAddButton = document.getElementById("cropWorkspaceAddButton");
+    const workspaceListButton = document.getElementById("cropWorkspaceListButton");
+    const closeCropFormButton = document.getElementById("closeCropFormButton");
 
-    const cropButton =
-        document.getElementById("cropButton");
-
-    const cropForm =
-        document.getElementById("cropForm");
-
-    const addCropButton =
-        document.getElementById("addCropButton");
-
-
-    cropButton.addEventListener("click", () => {
-
-        // Show the crop area
+    const openCropForm = () => {
+        if (!cropForm) return;
+        const body = document.body;
+        body.classList.add("crop-form-open");
+        cropForm.classList.add("crop-form-open");
         cropForm.style.display = "block";
+        document.getElementById("cropListSection")?.style.setProperty("display", "none", "important");
+        document.getElementById("cropActivityOverview")?.style.setProperty("display", "none", "important");
+        const today = new Date().toISOString().split("T")[0];
+        const dateInput = document.getElementById("plantingDate");
+        if (dateInput && !dateInput.value) dateInput.value = today;
+        cropForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
-        // Show crop list
-        document.getElementById(
-            "cropListSection"
-        ).style.display = "block";
-
-        // Hide crop details
-        document.getElementById(
-            "cropDetailsSection"
-        ).style.display = "none";
-
-        // Hide activity form
-        document.getElementById(
-            "cropActivityForm"
-        ).style.display = "none";
-
-
-        cropForm.scrollIntoView({
-            behavior: "smooth"
-        });
-
-
-        // Set today's date
-        const today =
-            new Date().toISOString().split("T")[0];
-
-        document.getElementById(
-            "plantingDate"
-        ).value = today;
-
-
-        // Load existing crops
-        loadCropList();
-
+    cropButton?.addEventListener("click", () => {
+        const navButton = document.querySelector('.bottom-nav-item[data-nav="crops"]');
+        if (navButton) navButton.click();
     });
 
-
-    // ADD CROP BUTTON
-
-    addCropButton.addEventListener("click", () => {
-
-        // Show the crop form
-        cropForm.style.display = "block";
-
-        cropForm.scrollIntoView({
-            behavior: "smooth"
-        });
-
-
-        // Set today's date
-        const today =
-            new Date().toISOString().split("T")[0];
-
-        document.getElementById(
-            "plantingDate"
-        ).value = today;
-
+    addCropButton?.addEventListener("click", openCropForm);
+    // The workspace button is wired by setupCropWorkspace; do not attach a second handler here.
+    workspaceListButton?.addEventListener("click", async () => {
+        cropForm.style.display = "none";
+        document.getElementById("cropActivityOverview")?.style.setProperty("display", "none", "important");
+        const list = document.getElementById("cropListSection");
+        if (list) { list.style.display = "block"; list.scrollIntoView({behavior:"smooth", block:"start"}); }
+        await loadCropList();
+    });
+    closeCropFormButton?.addEventListener("click", () => {
+        cropForm.style.display = "none";
+        cropForm.classList.remove("crop-form-open");
+        document.body.classList.remove("crop-form-open");
     });
 
+    document.getElementById("saveCropButton")?.addEventListener("click", saveCropRecord);
 
-    const saveCropButton =
-        document.getElementById("saveCropButton");
-
-
-    saveCropButton.addEventListener(
-        "click",
-        saveCropRecord
-    );
-
+    // Expose a small, controlled helper for empty-state buttons.
+    window.openFarmKeeperCropForm = openCropForm;
 }
 
 async function saveCropRecord() {
+
+    // Prevent double-clicks / duplicate submissions while IndexedDB is saving.
+    if (savingCropRecord) return;
+    savingCropRecord = true;
 
     const cropRecord = {
 
@@ -742,7 +705,7 @@ async function saveCropRecord() {
     if (!cropRecord.cropName) {
 
         alert("Please select a crop.");
-
+        savingCropRecord = false;
         return;
     }
 
@@ -750,12 +713,29 @@ async function saveCropRecord() {
     if (!cropRecord.plantingDate) {
 
         alert("Please select the planting date.");
-
+        savingCropRecord = false;
         return;
     }
 
 
     try {
+
+        const existingCrops = await getAllRecords("crops");
+        const duplicate = existingCrops.find(existing =>
+            String(existing.cropName || "").trim().toLowerCase() === String(cropRecord.cropName).trim().toLowerCase() &&
+            String(existing.variety || "").trim().toLowerCase() === String(cropRecord.variety || "").trim().toLowerCase() &&
+            String(existing.plot || "").trim().toLowerCase() === String(cropRecord.plot || "").trim().toLowerCase() &&
+            String(existing.plantingDate || "") === String(cropRecord.plantingDate || "") &&
+            Number(existing.quantityPlanted || 0) === Number(cropRecord.quantityPlanted || 0)
+        );
+
+        if (duplicate) {
+            alert("This crop record already exists. I did not create a duplicate.");
+            savingCropRecord = false;
+            currentCropId = duplicate.id;
+            await loadCropList();
+            return;
+        }
 
         const id = await addRecord(
             "crops",
@@ -781,6 +761,12 @@ async function saveCropRecord() {
         alert(
             "✅ Crop record saved successfully!"
         );
+
+        document.body.classList.remove("crop-form-open");
+        document.getElementById("cropForm")?.classList.remove("crop-form-open");
+        if (document.getElementById("cropForm")) {
+            document.getElementById("cropForm").style.display = "none";
+        }
 
 
         // Clear the form
@@ -813,9 +799,14 @@ async function saveCropRecord() {
         ).style.display = "none";
 
 
-        // Refresh crop list
-
+        // Show the saved crop list and refresh finance selectors.
+        const cropList = document.getElementById("cropListSection");
+        if (cropList) { cropList.classList.add("crop-list-open"); cropList.style.display = "block"; }
+        const cropOverview = document.getElementById("cropActivityOverview");
+        if (cropOverview) { cropOverview.classList.remove("crop-overview-open"); cropOverview.style.display = "none"; }
         await loadCropList();
+        await populateFinanceEntitySelectors();
+        savingCropRecord = false;
 
 
     } catch (error) {
@@ -828,6 +819,7 @@ async function saveCropRecord() {
         alert(
             "❌ Could not save crop record."
         );
+        savingCropRecord = false;
 
     }
 
@@ -835,19 +827,14 @@ async function saveCropRecord() {
 
 async function saveCropActivity() {
 
-    if (!currentCropId) {
-
-        alert(
-            "Please save a crop first before adding an activity."
-        );
-
+    const selectedCropId = Number(document.getElementById("activityCropSelect")?.value || currentCropId || 0);
+    if (!selectedCropId) {
+        alert("Please select a crop before adding an activity.");
         return;
     }
-
-
     const activity = {
 
-        cropId: currentCropId,
+        cropId: selectedCropId,
 
         date:
             document.getElementById("activityDate").value,
@@ -913,6 +900,16 @@ async function saveCropActivity() {
             "✅ Crop activity saved successfully!"
         );
 
+        // Keep the crop status in sync with activity.
+        try {
+            const crop = await getRecordById("crops", currentCropId);
+            if (crop) {
+                if (activity.type === "Harvesting") crop.status = "Harvesting";
+                await updateRecord("crops", crop);
+            }
+        } catch (statusError) {
+            console.warn("Could not update crop status:", statusError);
+        }
 
         // Clear activity fields
 
@@ -945,102 +942,88 @@ async function saveCropActivity() {
 }
 
 async function loadCropList() {
+    const cropList = document.getElementById("cropList");
+    if (!cropList) return;
 
-    const cropList =
-        document.getElementById("cropList");
+    // Serialize list loads. Older versions could call loadCropList() from
+    // several navigation handlers at the same time. Each call would then
+    // render the same IndexedDB record, producing two identical cards with
+    // the SAME id. Deleting one card consequently looked like two crops were
+    // deleted because both cards represented the same database record.
+    if (cropListLoadPromise) return cropListLoadPromise;
 
-    try {
+    const renderToken = ++cropListRenderToken;
+    cropListLoadPromise = (async () => {
+        try {
+            const rawCrops = await getAllRecords("crops");
+            const normalize = value => String(value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 
-        const crops =
-            await getAllRecords("crops");
+            // De-duplicate only the rendered list. We do NOT delete records
+            // here. Database cleanup is intentionally limited to startup so
+            // a normal refresh/delete can never remove another crop.
+            const seenKeys = new Set();
+            const crops = rawCrops.filter(crop => {
+                const key = [
+                    normalize(crop.cropName),
+                    normalize(crop.variety),
+                    normalize(crop.plot),
+                    normalize(crop.plantingDate),
+                    String(Number(crop.quantityPlanted || 0))
+                ].join("|");
+                if (seenKeys.has(key)) return false;
+                seenKeys.add(key);
+                return true;
+            });
 
+            crops.sort((a,b) => new Date(b.plantingDate || b.createdAt) - new Date(a.plantingDate || a.createdAt));
 
-        cropList.innerHTML = "";
+            // Ignore an older async render if a newer load has started.
+            if (renderToken !== cropListRenderToken) return;
+            cropList.replaceChildren();
 
+            if (!crops.length) {
+                cropList.innerHTML = '<div class="crop-empty-state"><div class="crop-empty-icon">🌱</div><h3>No crops yet</h3><p>Add your first crop to start tracking planting, activities and harvests.</p><button type="button" class="small-button" id="emptyAddCropButton">＋ Add First Crop</button></div>';
+                document.getElementById("emptyAddCropButton")?.addEventListener("click", () => window.openFarmKeeperCropForm?.());
+                return;
+            }
 
-        if (crops.length === 0) {
+            const activities = await getAllRecords("cropActivities");
+            const activityCounts = new Map();
+            activities.forEach(a => activityCounts.set(String(a.cropId), (activityCounts.get(String(a.cropId)) || 0) + 1));
 
-            cropList.innerHTML = `
-                <p class="empty-message">
-                    No crops recorded yet.
-                </p>
-            `;
+            if (renderToken !== cropListRenderToken) return;
 
-            return;
+            // Build the complete fragment first, then attach it once. This
+            // prevents partial duplicate rendering during async operations.
+            const fragment = document.createDocumentFragment();
+            crops.forEach(crop => {
+                const card = document.createElement("div");
+                card.className = "crop-card crop-card-enhanced";
+                const status = crop.status || "Growing";
+                card.innerHTML = `
+                    <div class="crop-card-top">
+                        <div><h3>🌱 ${crop.cropName}</h3><p>${crop.variety || "Variety not specified"}${crop.plot ? ` · ${crop.plot}` : ""}</p></div>
+                        <span class="crop-status-badge">${status}</span>
+                    </div>
+                    <div class="crop-mini-stats">
+                        <span>📅 ${crop.plantingDate || "No date"}</span>
+                        <span>📦 ${crop.quantityPlanted || 0} ${crop.cropUnit || ""}</span>
+                        <span>📜 ${activityCounts.get(String(crop.id)) || 0} activities</span>
+                    </div>
+                    <button type="button" class="small-button crop-view-button">View Crop →</button>`;
+                card.querySelector("button").addEventListener("click", () => viewCrop(crop.id));
+                fragment.appendChild(card);
+            });
+            cropList.replaceChildren(fragment);
+        } catch (error) {
+            console.error("Could not load crop list:", error);
+            if (renderToken === cropListRenderToken) cropList.innerHTML = '<p class="empty-message">Could not load crops.</p>';
+        } finally {
+            cropListLoadPromise = null;
         }
+    })();
 
-
-        crops.forEach(crop => {
-
-            const card =
-                document.createElement("div");
-
-            card.className = "crop-card";
-
-
-            card.innerHTML = `
-
-                <h3>
-                    🌱 ${crop.cropName}
-                </h3>
-
-                <p>
-                    <strong>Variety:</strong>
-                    ${crop.variety || "Not specified"}
-                </p>
-
-                <p>
-                    <strong>Plot:</strong>
-                    ${crop.plot || "Not specified"}
-                </p>
-
-                <p>
-                    <strong>Status:</strong>
-                    ${crop.status}
-                </p>
-
-                <button
-                    type="button"
-                    class="small-button"
-                    data-crop-id="${crop.id}">
-
-                    View Crop →
-
-                </button>
-
-            `;
-
-
-            const button =
-                card.querySelector("button");
-
-
-            button.addEventListener(
-                "click",
-                () => viewCrop(crop.id)
-            );
-
-
-            cropList.appendChild(card);
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Could not load crop list:",
-            error
-        );
-
-        cropList.innerHTML = `
-            <p class="empty-message">
-                Could not load crops.
-            </p>
-        `;
-
-    }
-
+    return cropListLoadPromise;
 }
 
 async function viewCrop(cropId) {
@@ -1138,6 +1121,28 @@ async function viewCrop(cropId) {
             ${crop.notes || "No notes"}
         </p>
 
+        <div class="crop-finance" id="cropFinance">
+            <h3>💰 Crop Finance</h3>
+            <div class="crop-performance-grid">
+                <div><strong id="cropCostValue">₦0</strong><span>Costs</span></div>
+                <div><strong id="cropRevenueValue">₦0</strong><span>Sales</span></div>
+                <div><strong id="cropProfitValue">₦0</strong><span>Profit</span></div>
+            </div>
+        </div>
+
+        <div class="crop-performance" id="cropPerformance">
+            <h3>📊 Crop Performance</h3>
+            <div class="crop-performance-grid">
+                <div><strong id="cropDaysValue">—</strong><span>Days tracked</span></div>
+                <div><strong id="cropActivityCountValue">—</strong><span>Activities</span></div>
+                <div><strong id="cropHarvestValue">0</strong><span>Harvest quantity</span></div>
+            </div>
+        </div>
+
+        <div class="entity-photos-section">
+            <h3>📷 Photos</h3>
+            <div id="cropPhotos" class="entity-photos-grid"><p class="empty-message">Loading photos...</p></div>
+        </div>
 
         <div class="crop-action-buttons">
 
@@ -1155,6 +1160,11 @@ async function viewCrop(cropId) {
     </div>
 
 `;
+try {
+    const cropPhotos = await getPhotosForTarget(`crop:${cropId}`);
+    renderEntityPhotos(document.getElementById("cropPhotos"), cropPhotos);
+} catch (photoError) { console.warn("Could not load crop photos:", photoError); }
+
 document
     .getElementById("deleteCropButton")
     .addEventListener(
@@ -1167,6 +1177,30 @@ document
 
         await loadCropActivities(cropId);
 
+        try {
+            const activities = await getAllRecords("cropActivities");
+            const cropActivities = activities.filter(a => a.cropId === cropId);
+            const planting = crop.plantingDate ? new Date(crop.plantingDate) : new Date();
+            const days = Math.max(0, Math.floor((Date.now() - planting.getTime()) / 86400000));
+            const harvestQty = cropActivities.filter(a => a.type === "Harvesting").reduce((sum,a) => sum + Number(a.quantity || 0), 0);
+            document.getElementById("cropDaysValue").textContent = days;
+            document.getElementById("cropActivityCountValue").textContent = cropActivities.length;
+            document.getElementById("cropHarvestValue").textContent = `${harvestQty} ${cropActivities.find(a => a.type === "Harvesting" && a.unit)?.unit || ""}`.trim();
+            const [expenses, labour, sales] = await Promise.all([getAllRecords("expenses"), getAllRecords("labour"), getAllRecords("sales")]);
+            const cost = expenses.filter(x => x.linkedEntity && x.linkedEntity.kind === "crop" && Number(x.linkedEntity.id) === Number(cropId)).reduce((n,x)=>n+Number(x.amount||0),0)
+                + labour.filter(x => x.linkedEntity && x.linkedEntity.kind === "crop" && Number(x.linkedEntity.id) === Number(cropId)).reduce((n,x)=>n+Number(x.cost||0),0);
+            const revenue = sales.filter(x => x.linkedEntity && x.linkedEntity.kind === "crop" && Number(x.linkedEntity.id) === Number(cropId)).reduce((n,x)=>n+Number(x.amount||0),0);
+            document.getElementById("cropCostValue").textContent = `₦${cost.toLocaleString("en-NG")}`;
+            document.getElementById("cropRevenueValue").textContent = `₦${revenue.toLocaleString("en-NG")}`;
+            const cropProfit = revenue - cost;
+            const cropProfitValue = document.getElementById("cropProfitValue");
+            if (cropProfitValue) {
+                cropProfitValue.textContent = `₦${cropProfit.toLocaleString("en-NG")}`;
+                applyFinancialTone(cropProfitValue, cropProfit);
+                const cropProfitLabel = cropProfitValue.parentElement?.querySelector('span');
+                if (cropProfitLabel) cropProfitLabel.textContent = cropProfit < 0 ? "Loss" : "Profit";
+            }
+        } catch (perfError) { console.warn("Could not calculate crop performance:", perfError); }
 
         detailsSection.scrollIntoView({
             behavior: "smooth"
@@ -1687,16 +1721,25 @@ function setupCropNavigation() {
             ).style.display = "none";
 
 
-            document.getElementById(
-                "cropListSection"
-            ).style.display = "block";
+            const list = document.getElementById("cropListSection");
+            const overview = document.getElementById("cropActivityOverview");
+            if (overview) { overview.classList.remove("crop-overview-open"); overview.style.display = "none"; }
+            if (list) { list.classList.add("crop-list-open"); list.style.display = "block"; }
 
-
-            loadCropList();
-
+    
         }
     );
 
+}
+
+async function populateCropActivitySelector(selectedId = null) {
+    const select = document.getElementById("activityCropSelect");
+    if (!select) return;
+    try {
+        const crops = await getAllRecords("crops");
+        select.innerHTML = '<option value="">Select crop</option>' + crops.map(c => `<option value="${c.id}">${c.cropName}${c.plot ? ` — ${c.plot}` : ""}</option>`).join("");
+        if (selectedId) select.value = String(selectedId);
+    } catch (e) { console.warn("Could not load crop selector:", e); }
 }
 
 function setupCropActivityForm() {
@@ -1736,6 +1779,8 @@ function setupCropActivityForm() {
         ).value = today;
 
 
+        populateCropActivitySelector(currentCropId);
+
         // Get the selected crop
 
         getRecordById(
@@ -1773,10 +1818,108 @@ function setupCropActivityForm() {
             await loadCropActivities(
                 currentCropId
             );
+            await loadCropActivityOverview();
 
         }
     );
 
+}
+
+function setupCropWorkspace() {
+    const addButton = document.getElementById("cropWorkspaceAddButton");
+    const listButton = document.getElementById("cropWorkspaceListButton");
+    const activitiesButton = document.getElementById("cropWorkspaceActivitiesButton");
+    const overviewAddButton = document.getElementById("cropOverviewAddActivityButton");
+
+    // Workspace actions are wired here so each button has one clear purpose.
+    if (addButton) {
+        addButton.addEventListener("click", () => {
+            if (typeof window.openFarmKeeperCropForm === "function") {
+                window.openFarmKeeperCropForm();
+            }
+        });
+    }
+
+    if (listButton) {
+        listButton.addEventListener("click", async () => {
+            const form = document.getElementById("cropForm");
+            const overview = document.getElementById("cropActivityOverview");
+            const list = document.getElementById("cropListSection");
+            if (form) form.style.display = "none";
+            if (overview) overview.style.display = "none";
+            if (list) {
+                list.style.setProperty("display", "block", "important");
+                list.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+            await loadCropList();
+        });
+    }
+
+    if (activitiesButton) {
+        activitiesButton.addEventListener("click", async () => {
+            const list = document.getElementById("cropListSection");
+            list?.classList.remove("crop-list-open");
+            list?.style.setProperty("display", "none", "important");
+            const overview = document.getElementById("cropActivityOverview");
+            if (overview) { overview.classList.add("crop-overview-open"); overview.style.display = "block"; overview.scrollIntoView({ behavior: "smooth", block: "start" }); }
+            await loadCropActivityOverview();
+        });
+    }
+
+    if (overviewAddButton) {
+        overviewAddButton.addEventListener("click", async () => {
+                const form = document.getElementById("cropActivityForm");
+            if (!form) return;
+            form.style.display = "block";
+            document.getElementById("activityCropName").textContent = "Choose the crop this activity belongs to.";
+            await populateCropActivitySelector(currentCropId);
+            document.getElementById("activityDate").value = new Date().toISOString().split("T")[0];
+            form.scrollIntoView({ behavior: "smooth" });
+        });
+    }
+
+    loadCropActivityOverview();
+}
+
+async function loadCropActivityOverview() {
+    const list = document.getElementById("cropActivityOverviewList");
+    if (!list) return;
+
+    try {
+        const [activities, crops] = await Promise.all([
+            getAllRecords("cropActivities"),
+            getAllRecords("crops")
+        ]);
+        const cropMap = new Map(crops.map(crop => [crop.id, crop]));
+        activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const recent = activities.slice(0, 12);
+
+        if (!recent.length) {
+            list.innerHTML = '<p class="empty-message">No crop activities recorded yet.</p>';
+            return;
+        }
+
+        list.innerHTML = recent.map(activity => {
+            const crop = cropMap.get(activity.cropId);
+            return `
+                <div class="activity-card activity-overview-card">
+                    <div>
+                        <strong>🌱 ${crop ? crop.cropName : "Crop"} — ${activity.type}</strong>
+                        <p>📅 ${activity.date}</p>
+                        ${activity.quantity > 0 ? `<p>📦 ${activity.quantity} ${activity.unit || ""}</p>` : ""}
+                        ${activity.notes ? `<p>📝 ${activity.notes}</p>` : ""}
+                    </div>
+                    ${crop ? `<button type="button" class="small-button activity-open-crop" data-crop-id="${crop.id}">Open Crop</button>` : ""}
+                </div>
+            `;
+        }).join("");
+        list.querySelectorAll(".activity-open-crop").forEach(button => {
+            button.addEventListener("click", () => viewCrop(Number(button.dataset.cropId)));
+        });
+    } catch (error) {
+        console.error("Could not load crop activity overview:", error);
+        list.innerHTML = '<p class="empty-message">Could not load crop activities.</p>';
+    }
 }
 
 function setupFlockForm() {
@@ -2024,27 +2167,40 @@ function setupPoultryNavigation() {
     // Open Poultry
 
     eggProductionButton.addEventListener("click", () => {
-
+        const navButton = document.querySelector('.bottom-nav-item[data-nav="animals"]');
+        if (navButton) { navButton.click(); return; }
         poultrySection.style.display = "block";
-
-        poultrySection.scrollIntoView({
-            behavior: "smooth"
-        });
-
     });
 
 
-    // Go back to dashboard
-
-    backButton.addEventListener("click", () => {
-
-        poultrySection.style.display = "none";
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
+    // Egg Production belongs to Animals, so Back must return to the
+    // Animal workspace — never the Finance workspace.
+    backButton?.addEventListener("click", () => {
+        const nav = document.getElementById("bottomNav");
+        nav?.querySelectorAll(".bottom-nav-item").forEach(item => {
+            item.classList.toggle("active", item.dataset.nav === "animals");
         });
 
+        document.body.classList.add("navigation-active");
+        document.body.dataset.navigation = "animals";
+        hideAllNavigationPanels();
+
+        const animal = document.getElementById("animalWorkspace");
+        const poultry = document.getElementById("poultrySection");
+        const list = document.getElementById("animalListCard");
+        const finance = document.getElementById("animalFinanceSummary");
+        const form = document.getElementById("animalForm");
+
+        if (poultry) {
+            poultry.classList.remove("poultry-open");
+            poultry.style.display = "none";
+        }
+        if (animal) animal.style.display = "block";
+        if (list) list.style.display = "none";
+        if (finance) finance.style.display = "none";
+        if (form) form.style.display = "none";
+
+        animal?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
 }
@@ -2970,282 +3126,174 @@ async function deleteEggRecord(recordId) {
 
 }
 
+async function setupFinanceWorkspace() {
+    const financeWorkspace = document.getElementById("financeWorkspace");
+    const expenseSection = document.getElementById("farmExpenseSection");
+    const labourSection = document.getElementById("farmLabourSection");
+    const salesSection = document.getElementById("farmSalesSection");
+    if (!financeWorkspace) return;
+
+    const hideDetails = () => {
+        [expenseSection, labourSection, salesSection].forEach(el => { if (el) el.style.display = "none"; });
+        financeWorkspace.style.display = "block";
+    };
+    const openDetails = async (section, loader, dateSetter) => {
+        financeWorkspace.style.display = "none";
+        [expenseSection, labourSection, salesSection].forEach(el => { if (el) el.style.display = "none"; });
+        if (section) section.style.display = "block";
+        if (dateSetter) dateSetter();
+        if (loader) await loader();
+        section?.scrollIntoView({behavior:"smooth", block:"start"});
+    };
+
+    document.getElementById("financeExpensesButton")?.addEventListener("click", () => openDetails(expenseSection, loadExpenseHistory));
+    document.getElementById("financeLabourButton")?.addEventListener("click", () => openDetails(labourSection, loadLabourHistory, setLabourDate));
+    document.getElementById("financeSalesButton")?.addEventListener("click", () => openDetails(salesSection, loadSalesHistory, setSalesDate));
+    document.getElementById("financeRecentButton")?.addEventListener("click", () => document.getElementById("financeRecentCard")?.scrollIntoView({behavior:"smooth", block:"start"}));
+    document.getElementById("financeRefreshButton")?.addEventListener("click", refreshFinanceDashboard);
+
+    document.getElementById("farmExpenseButton")?.addEventListener("click", hideDetails);
+    document.getElementById("farmLabourBackButton")?.addEventListener("click", hideDetails);
+    document.getElementById("farmSalesBackButton")?.addEventListener("click", hideDetails);
+
+    await refreshFinanceDashboard();
+}
+
+async function refreshFinanceDashboard() {
+    try {
+        const [expenses, labour, sales] = await Promise.all([
+            getAllRecords("expenses"), getAllRecords("labour"), getAllRecords("sales")
+        ]);
+        const expenseTotal = expenses.reduce((n,r)=>n+Number(r.amount||0),0) + labour.reduce((n,r)=>n+Number(r.cost||0),0);
+        const salesTotal = sales.reduce((n,r)=>n+Number(r.amount||0),0);
+        const profit = salesTotal - expenseTotal;
+        const fmt = n => `₦${Number(n).toLocaleString("en-NG")}`;
+        const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+        set("financeExpenseTotal",fmt(expenseTotal));
+        set("financeSalesTotal",fmt(salesTotal));
+        set("financeProfitTotal",fmt(profit));
+        applyFinancialTone(document.getElementById("financeProfitTotal"), profit);
+        const financeProfitLabel = document.querySelector('#financeProfitTotal')?.parentElement?.querySelector('small');
+        if (financeProfitLabel) financeProfitLabel.textContent = profit < 0 ? "Loss" : "Profit";
+
+        const rows = [
+            ...expenses.map(r=>({date:r.date, icon:"💸", title:r.description||r.category||"Expense", amount:-Number(r.amount||0), type:"Expense"})),
+            ...labour.map(r=>({date:r.date, icon:"👷", title:r.type||"Labour", amount:-Number(r.cost||0), type:"Labour"})),
+            ...sales.map(r=>({date:r.date, icon:"💵", title:r.product||"Sale", amount:Number(r.amount||0), type:"Sale"}))
+        ].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+        const list=document.getElementById("financeRecentList");
+        if (!list) return;
+        list.innerHTML = rows.length ? rows.map(r=>`<div class="finance-transaction"><span class="finance-transaction-icon">${r.icon}</span><div><strong>${r.title}</strong><small>${r.date} · ${r.type}</small></div><b class="${r.amount<0?'finance-out':'finance-in'}">${r.amount<0?'−':'+'}${fmt(Math.abs(r.amount))}</b></div>`).join("") : '<p class="empty-message">No financial records yet.</p>';
+    } catch(error) { console.error("Could not refresh finance dashboard:",error); }
+}
+
 function setupExpenseNavigation() {
+    const expenseButton = document.getElementById("expenseButton");
+    const expenseSection = document.getElementById("farmExpenseSection");
+    const backButton = document.getElementById("farmExpenseButton");
 
-    const expenseButton =
-        document.getElementById("expenseButton");
-
-    const expenseSection =
-        document.getElementById("farmExpenseSection");
-
-    const backButton =
-        document.getElementById("farmExpenseButton");
-
-
-    expenseButton.addEventListener("click", () => {
-
-        expenseSection.style.display = "block";
-
-        expenseSection.scrollIntoView({
-            behavior: "smooth"
-        });
-
+    // Home/legacy expense shortcut opens the Finance workspace.
+    expenseButton?.addEventListener("click", () => {
+        const navButton = document.querySelector('.bottom-nav-item[data-nav="finance"]');
+        if (navButton) { navButton.click(); return; }
+        if (expenseSection) expenseSection.style.display = "block";
     });
 
-
-    backButton.addEventListener("click", () => {
-
-        expenseSection.style.display = "none";
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-
+    // Expense detail always returns to Finance — never Animals.
+    backButton?.addEventListener("click", () => {
+        const workspace = document.getElementById("financeWorkspace");
+        if (expenseSection) expenseSection.style.display = "none";
+        if (workspace) {
+            workspace.style.display = "block";
+            workspace.scrollIntoView({behavior:"smooth", block:"start"});
+        }
+        refreshFinanceDashboard();
     });
-
 }
-function setupReminderNavigation() {
-
-    const reminderButton =
-        document.getElementById("remindersButton");
-
-    const reminderSection =
-        document.getElementById("remindersSection");
-
-    const backButton =
-        document.getElementById("remindersBackButton");
-
-
-    reminderButton.addEventListener("click", () => {
-
-        reminderSection.style.display = "block";
-
-        reminderSection.scrollIntoView({
-            behavior: "smooth"
-        });
-
-    });
-
-
-    backButton.addEventListener("click", () => {
-
-        reminderSection.style.display = "none";
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-
-    });
-
+function setupReminderNavigation(){ const button=document.getElementById("remindersButton"),section=document.getElementById("remindersSection"),back=document.getElementById("remindersBackButton"); button?.addEventListener("click",async()=>{showMorePanel("reminders");await populateReminderTargets();await loadReminders();}); back?.addEventListener("click",()=>showMorePanel("menu")); }
+async function populateReminderTargets(){ const s=document.getElementById("reminderTarget");if(!s)return;const[crops,animals]=await Promise.all([getAllRecords("crops"),getAllRecords("animals")]);s.innerHTML='<option value="">🌾 General farm</option>'+crops.map(c=>`<option value="crop:${c.id}">🌱 ${escapeHtml(c.cropName||"Crop")}${c.plot?` — ${escapeHtml(c.plot)}`:""}</option>`).join("")+animals.map(a=>`<option value="animal:${a.id}">🐄 ${escapeHtml(a.type||"Animal")}${a.breed?` — ${escapeHtml(a.breed)}`:""}</option>`).join(""); }
+function reminderDueLabel(r){const d=new Date(`${r.dueDate}T${r.dueTime||"00:00"}`);const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());const day=new Date(d.getFullYear(),d.getMonth(),d.getDate());const diff=Math.round((day-today)/86400000);if(diff===0)return r.dueTime?`Today at ${r.dueTime}`:"Today";if(diff===1)return r.dueTime?`Tomorrow at ${r.dueTime}`:"Tomorrow";if(diff>1&&diff<7)return d.toLocaleDateString("en-NG",{weekday:"long"})+(r.dueTime?` at ${r.dueTime}`:"");return d.toLocaleDateString("en-NG",{day:"numeric",month:"long",year:"numeric"})+(r.dueTime?` at ${r.dueTime}`:"");}
+async function requestFarmKeeperNotifications(){
+    if(!('Notification' in window)) { alert('This browser does not support notifications.'); return 'unsupported'; }
+    if(!window.isSecureContext) { alert('Notifications require HTTPS (or localhost).'); return 'insecure'; }
+    try { return await Notification.requestPermission(); } catch(e) { console.warn('Notification permission request failed', e); return 'denied'; }
 }
-async function saveReminder() {
-
-    const time =
-        document.getElementById(
-            "dailyReminderTime"
-        ).value;
-
-    const enabled =
-        document.getElementById(
-            "dailyReminderEnabled"
-        ).checked;
-
-
-    if (enabled && !time) {
-
-        alert(
-            "Please select a reminder time."
-        );
-
-        return;
-    }
-
-
+async function showFarmKeeperNotification(title, body){
     try {
-
-        const reminders =
-            await getAllRecords(
-                "reminders"
-            );
-
-
-        // Remove previous reminder
-
-        for (const reminder of reminders) {
-
-            await deleteRecord(
-                "reminders",
-                reminder.id
-            );
-
+        if(!('Notification' in window) || Notification.permission !== 'granted') return false;
+        const registration = await navigator.serviceWorker?.ready;
+        if(registration?.showNotification){
+            await registration.showNotification(title, {body, icon:'./icons/icon-192.png', badge:'./icons/icon-192.png', tag:'farmkeeper-reminder'});
+            return true;
         }
-
-
-        // Save the new reminder
-
-        await addRecord(
-            "reminders",
-            {
-                type: "dailyRecord",
-                time: time,
-                enabled: enabled,
-                createdAt:
-                    new Date().toISOString()
-            }
-        );
-
-
-        alert(
-            "✅ Reminder saved successfully!"
-        );
-
-
-        await updateReminderStatus();
-
-
-    } catch (error) {
-
-        console.error(
-            "Could not save reminder:",
-            error
-        );
-
-
-        alert(
-            "❌ Could not save reminder."
-        );
-
-    }
-
+        new Notification(title, {body});
+        return true;
+    } catch(e){ console.warn('Could not show notification', e); return false; }
 }
-function setupReminderForm() {
-
-    const saveButton =
-        document.getElementById(
-            "saveReminderButton"
-        );
-
-
-    if (!saveButton) {
-        console.error(
-            "Save Reminder button not found."
-        );
-        return;
-    }
-
-
-    saveButton.addEventListener(
-        "click",
-        saveReminder
-    );
-
-
-    updateReminderStatus();
-
+async function saveReminder(){
+    const title=document.getElementById("reminderTitle")?.value.trim(),date=document.getElementById("reminderDueDate")?.value,time=document.getElementById("reminderDueTime")?.value||"",repeat=document.getElementById("reminderRepeat")?.value||"none",target=document.getElementById("reminderTarget")?.value||"",notes=document.getElementById("reminderNotes")?.value.trim()||"",notify=document.getElementById("reminderNotify")?.checked!==false;
+    if(!title||!date){alert("Please enter a reminder and due date.");return;}
+    try{
+        if(notify){
+            const permission=await requestFarmKeeperNotifications();
+            if(permission!=='granted') { document.getElementById("reminderNotify").checked=false; alert('Reminder saved, but device notifications are not enabled. Please allow notifications for FarmKeeper in your browser.'); }
+        }
+        await addRecord("reminders",{type:"task",title,dueDate:date,dueTime:time,repeat,target,notes,notify:notify&&('Notification' in window)&&Notification.permission==='granted',completed:false,createdAt:new Date().toISOString()});
+        ["reminderTitle","reminderDueDate","reminderDueTime","reminderNotes"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+        document.getElementById("reminderRepeat").value="none"; document.getElementById("reminderTarget").value="";
+        await loadReminders(); checkTaskReminders();
+        alert("✅ Reminder saved successfully!");
+    }catch(e){console.error(e);alert("❌ Could not save reminder.");}
 }
 
-async function updateReminderStatus() {
-
-    const status =
-        document.getElementById(
-            "reminderStatus"
-        );
-
-    try {
-
-        const reminders =
-            await getAllRecords(
-                "reminders"
-            );
-
-
-        if (reminders.length === 0) {
-
-            status.innerHTML = `
-                <h3>🔔 Reminder Status</h3>
-
-                <p>
-                    Daily reminder is currently disabled.
-                </p>
-            `;
-
-            return;
-        }
-
-
-        const reminder =
-            reminders[0];
-
-
-        if (!reminder.enabled) {
-
-            status.innerHTML = `
-                <h3>🔔 Reminder Status</h3>
-
-                <p>
-                    🔕 Daily reminder is disabled.
-                </p>
-            `;
-
-            return;
-        }
-
-
-        // Convert 24-hour time to a friendly format
-
-        const [hours, minutes] =
-            reminder.time.split(":");
-
-        const date =
-            new Date();
-
-        date.setHours(
-            Number(hours),
-            Number(minutes)
-        );
-
-
-        const formattedTime =
-            date.toLocaleTimeString(
-                "en-NG",
-                {
-                    hour: "numeric",
-                    minute: "2-digit"
+async function completeReminder(id){
+    const rs=await getAllRecords("reminders"),r=rs.find(x=>Number(x.id)===Number(id)); if(!r)return;
+    r.completed=true; r.completedAt=new Date().toISOString(); await updateRecord("reminders",r);
+    if(r.repeat&&r.repeat!=="none"){
+        const next=new Date(`${r.dueDate}T${r.dueTime||"09:00"}`);
+        if(r.repeat==="daily") next.setDate(next.getDate()+1);
+        if(r.repeat==="weekly") next.setDate(next.getDate()+7);
+        if(r.repeat==="monthly") next.setMonth(next.getMonth()+1);
+        await addRecord("reminders",{type:"task",title:r.title,dueDate:next.toISOString().split("T")[0],dueTime:r.dueTime||"",repeat:r.repeat,target:r.target||"",notes:r.notes||"",notify:r.notify!==false,completed:false,createdAt:new Date().toISOString()});
+    }
+    await loadReminders();
+}
+async function deleteReminder(id){if(!confirm("Delete this reminder?"))return;await deleteRecord("reminders",Number(id));await loadReminders();}
+function setupReminderForm(){document.getElementById("saveReminderButton")?.addEventListener("click",saveReminder);updateReminderStatus();}
+async function loadReminders(){const list=document.getElementById("reminderList");if(!list)return;try{const rs=(await getAllRecords("reminders")).filter(r=>r.type!=="dailyRecord");rs.sort((a,b)=>new Date(`${a.completed?"9999-12-31":a.dueDate}T${a.dueTime||"00:00"}`)-new Date(`${b.completed?"9999-12-31":b.dueDate}T${b.dueTime||"00:00"}`));if(!rs.length){list.innerHTML='<p class="empty-message">No reminders yet.</p>';return;}list.innerHTML=rs.map(r=>`<article class="reminder-task-card ${r.completed?"completed":""}"><div><strong>${r.completed?"✅":"🔔"} ${escapeHtml(r.title)}</strong><p>${reminderDueLabel(r)}${r.repeat&&r.repeat!=="none"?` · ${escapeHtml(r.repeat)}`:""}</p>${r.notes?`<p>${escapeHtml(r.notes)}</p>`:""}</div><div class="reminder-actions">${r.completed?"":`<button type="button" class="small-button" onclick="completeReminder(${Number(r.id)})">✓ Done</button>`}<button type="button" class="small-button danger-button" onclick="deleteReminder(${Number(r.id)})">🗑️ Delete</button></div></article>`).join("");await updateReminderStatus();}catch(e){console.error(e);}}
+async function updateReminderStatus(){const s=document.getElementById("reminderStatus");if(!s)return;try{const rs=(await getAllRecords("reminders")).filter(r=>r.type==="task"&&!r.completed);const daily=(await getAllRecords("reminders")).find(r=>r.type==="dailyRecord"&&r.enabled);s.innerHTML=`<h3>🔔 Reminder Status</h3><p>🟢 ${rs.length} active farm task${rs.length===1?"":"s"}.</p>${daily?`<p>📝 Daily record reminder: ${escapeHtml(daily.time)}</p>`:""}`;}catch(e){s.innerHTML='<p>⚠️ Could not load reminder status.</p>';}}
+async function checkTaskReminders(){
+    try{
+        const rs=await getAllRecords("reminders"),now=new Date();
+        for(const r of rs.filter(x=>x.type==="task"&&!x.completed)){
+            const due=new Date(`${r.dueDate}T${r.dueTime||"09:00"}`);
+            if(now>=due){
+                const key=`fk-reminder-shown-${r.id}-${r.dueDate}`;
+                if(r.notify && !localStorage.getItem(key)){
+                    const shown=await showFarmKeeperNotification("🔔 FarmKeeper Reminder", r.title);
+                    if(!shown) console.warn('Notification could not be displayed. Permission:', ('Notification' in window ? Notification.permission : 'unsupported'));
+                    localStorage.setItem(key,"1");
                 }
-            );
-
-
-        status.innerHTML = `
-            <h3>🔔 Reminder Status</h3>
-
-            <p>
-                🟢 Daily reminder is enabled for
-                <strong>${formattedTime}</strong>.
-            </p>
-        `;
-
-
-    } catch (error) {
-
-        console.error(
-            "Could not load reminder status:",
-            error
-        );
-
-
-        status.innerHTML = `
-            <h3>🔔 Reminder Status</h3>
-
-            <p>
-                ⚠️ Could not load reminder status.
-            </p>
-        `;
-
-    }
-
+            }
+        }
+    }catch(e){console.warn("Could not check task reminders",e);}
 }
+function setupReminderNotificationButton(){
+    const btn=document.getElementById('enableReminderNotifications');
+    const status=document.getElementById('reminderNotificationStatus');
+    const refresh=()=>{
+        if(!status)return;
+        if(!('Notification' in window)) status.textContent='⚠️ Notifications are not supported by this browser.';
+        else if(Notification.permission==='granted') status.textContent='✅ Device notifications are enabled.';
+        else if(Notification.permission==='denied') status.textContent='🚫 Notifications are blocked. Allow them in your browser site settings.';
+        else status.textContent='🔔 Device notifications are not enabled yet.';
+    };
+    btn?.addEventListener('click',async()=>{await requestFarmKeeperNotifications();refresh();if(Notification.permission==='granted') await showFarmKeeperNotification('FarmKeeper','Notifications are working!');});
+    refresh();
+}
+setInterval(checkTaskReminders,30000);
+window.addEventListener('focus',checkTaskReminders);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkTaskReminders();});
 
 async function saveExpenseRecord() {
 
@@ -3260,6 +3308,8 @@ async function saveExpenseRecord() {
             document.getElementById(
                 "farmExpenseCategory"
             ).value,
+
+        linkedEntity: getFinanceEntitySelection("farmExpenseCrop"),
 
         description:
             document.getElementById(
@@ -3466,6 +3516,8 @@ async function updateExpenseRecord(recordId) {
 
             category: category,
 
+            linkedEntity: getFinanceEntitySelection("farmExpenseCrop"),
+
             description: description,
 
             amount: amount,
@@ -3510,6 +3562,7 @@ async function updateExpenseRecord(recordId) {
 
         await loadExpenseHistory();
         await updateFinancialSummary();
+        await refreshFinanceDashboard();
 
 
     } catch (error) {
@@ -3543,29 +3596,26 @@ function setupReportsNavigation() {
         "click",
         () => {
 
+            const navButton = document.querySelector('.bottom-nav-item[data-nav="more"]');
+            if (navButton) { navButton.click(); showMorePanel("reports"); return; }
             reportsSection.style.display = "block";
 
-            reportsSection.scrollIntoView({
-                behavior: "smooth"
-            });
-
         }
     );
 
 
-    backButton.addEventListener(
-        "click",
-        () => {
-
-            reportsSection.style.display = "none";
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
-
-        }
-    );
+    backButton?.addEventListener("click", () => {
+        const nav = document.getElementById("bottomNav");
+        nav?.querySelectorAll(".bottom-nav-item").forEach(item => {
+            item.classList.toggle("active", item.dataset.nav === "more");
+        });
+        document.body.classList.add("navigation-active");
+        document.body.dataset.navigation = "more";
+        if (reportsSection) reportsSection.style.setProperty("display", "none", "important");
+        const moreMenu = document.getElementById("moreMenu");
+        if (moreMenu) moreMenu.style.setProperty("display", "block", "important");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
 }
 
@@ -3619,6 +3669,12 @@ async function generateFarmReport() {
 
         const dailyRecords =
             await getAllRecords("dailyRecords");
+
+        const animals =
+            await getAllRecords("animals");
+
+        const crops =
+            await getAllRecords("crops");
 
 
         // Determine date range
@@ -3714,6 +3770,29 @@ async function generateFarmReport() {
 
         const filteredDailyRecords =
             dailyRecords.filter(isInPeriod);
+
+        // General farm asset summaries
+        const filteredAnimals = animals.filter(a => {
+            const date = a.dateAcquired || a.createdAt?.slice(0, 10);
+            return !startDate || (date && new Date(date + "T00:00:00") >= startDate && new Date(date + "T00:00:00") <= now);
+        });
+
+        const filteredCrops = crops.filter(c => {
+            const date = c.plantingDate || c.createdAt?.slice(0, 10);
+            return !startDate || (date && new Date(date + "T00:00:00") >= startDate && new Date(date + "T00:00:00") <= now);
+        });
+
+        const animalHeadCount = filteredAnimals.reduce((sum, a) => sum + Number(a.count || 0), 0);
+        const animalTypeSummary = filteredAnimals.reduce((map, a) => {
+            const type = a.type || "Other";
+            map[type] = (map[type] || 0) + Number(a.count || 0);
+            return map;
+        }, {});
+        const animalTypeLines = Object.entries(animalTypeSummary)
+            .sort((a,b) => b[1] - a[1])
+            .slice(0, 8)
+            .map(([type, count]) => `<div class="report-item"><span>${type}</span><strong>${count}</strong></div>`)
+            .join("");
 
 
         // =========================
@@ -3824,6 +3903,46 @@ async function generateFarmReport() {
                     <strong>Period:</strong>
                     ${periodName}
                 </p>
+
+            </div>
+
+
+            <div class="report-card">
+
+                <h3>
+                    🐄 Animal Summary
+                </h3>
+
+                <div class="report-item">
+                    <span>Animal Groups</span>
+                    <strong>${filteredAnimals.length}</strong>
+                </div>
+
+                <div class="report-item">
+                    <span>Total Animals</span>
+                    <strong>${animalHeadCount}</strong>
+                </div>
+
+                ${animalTypeLines || '<p class="empty-message">No animal records in this period.</p>'}
+
+            </div>
+
+
+            <div class="report-card">
+
+                <h3>
+                    🌱 Crop Summary
+                </h3>
+
+                <div class="report-item">
+                    <span>Crop Records</span>
+                    <strong>${filteredCrops.length}</strong>
+                </div>
+
+                <div class="report-item">
+                    <span>Crop Activities</span>
+                    <strong>${filteredActivities.length}</strong>
+                </div>
 
             </div>
 
@@ -3966,10 +4085,10 @@ async function generateFarmReport() {
                 <div class="report-item report-total">
 
                     <span>
-                        📈 Net Profit
+                        📈 ${netProfit < 0 ? "Loss" : "Net Profit"}
                     </span>
 
-                    <strong>
+                    <strong class="${netProfit < 0 ? "financial-negative" : netProfit > 0 ? "financial-positive" : "financial-neutral"}">
                         ₦${netProfit.toLocaleString(
                             "en-NG"
                         )}
@@ -4275,6 +4394,11 @@ async function editExpenseRecord(recordId) {
         ).value =
             expense.category || "";
 
+        const expenseEntitySelect = document.getElementById("farmExpenseCrop");
+        if (expenseEntitySelect) {
+            expenseEntitySelect.value = expense.linkedEntity || "";
+        }
+
 
         document.getElementById(
             "farmExpenseDescription"
@@ -4426,20 +4550,12 @@ function setupLabourForm() {
 
     // Back to Dashboard
 
-    backButton.addEventListener(
-        "click",
-        () => {
-
-            labourSection.style.display =
-                "none";
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
-
-        }
-    );
+    backButton.addEventListener("click", () => {
+        document.getElementById("farmSalesSection").style.display = "none";
+        document.getElementById("financeWorkspace").style.display = "block";
+        refreshFinanceDashboard();
+        document.getElementById("financeWorkspace").scrollIntoView({behavior:"smooth", block:"start"});
+    });
 
 
     // Save Labour
@@ -4485,6 +4601,8 @@ async function saveLabourRecord() {
             document.getElementById(
                 "farmLabourType"
             ).value,
+
+        linkedEntity: getFinanceEntitySelection("farmLabourCrop"),
 
         cost:
             Number(
@@ -4638,7 +4756,9 @@ async function saveLabourRecord() {
 
 
         await loadLabourHistory();
+        await populateFinanceEntitySelectors();
         await updateFinancialSummary();
+        await refreshFinanceDashboard();
 
 
     } catch (error) {
@@ -4870,6 +4990,11 @@ async function editLabourRecord(recordId) {
         ).value =
             record.type || "";
 
+        const labourEntitySelect = document.getElementById("farmLabourCrop");
+        if (labourEntitySelect) {
+            labourEntitySelect.value = record.linkedEntity || "";
+        }
+
 
         document.getElementById(
             "farmLabourCost"
@@ -5007,22 +5132,17 @@ function setupSalesForm() {
     );
 
 
-    // Back to Dashboard
-
-    backButton.addEventListener(
-        "click",
-        () => {
-
-            salesSection.style.display =
-                "none";
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
-
+    // Back to Finance dashboard
+    backButton?.addEventListener("click", () => {
+        const workspace = document.getElementById("financeWorkspace");
+        const section = document.getElementById("farmSalesSection");
+        if (section) section.style.display = "none";
+        if (workspace) {
+            workspace.style.display = "block";
+            workspace.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-    );
+        refreshFinanceDashboard();
+    });
 
 
     // Save Sale
@@ -5061,6 +5181,8 @@ async function saveSalesRecord() {
             document.getElementById(
                 "farmSalesProduct"
             ).value,
+
+        linkedEntity: getFinanceEntitySelection("farmSalesCrop"),
 
         quantity:
             Number(
@@ -5240,7 +5362,9 @@ async function saveSalesRecord() {
 
 
         await loadSalesHistory();
+        await populateFinanceEntitySelectors();
         await updateFinancialSummary();
+        await refreshFinanceDashboard();
 
 
     } catch (error) {
@@ -5486,6 +5610,11 @@ async function editSalesRecord(recordId) {
         ).value =
             sale.product || "";
 
+        const salesEntitySelect = document.getElementById("farmSalesCrop");
+        if (salesEntitySelect) {
+            salesEntitySelect.value = sale.linkedEntity || "";
+        }
+
 
         document.getElementById(
             "farmSalesQuantity"
@@ -5571,6 +5700,10 @@ async function deleteSalesRecord(recordId) {
             recordId
         );
 
+        // Sales deletion is isolated to the sales ledger.
+        // It never deletes or edits crop, animal, labour, expense, or daily records.
+
+
 
         alert(
             "🗑️ Sale deleted successfully."
@@ -5579,6 +5712,7 @@ async function deleteSalesRecord(recordId) {
 
         await loadSalesHistory();
         await updateFinancialSummary();
+        await refreshFinanceDashboard();
 
 
     } catch (error) {
@@ -5594,6 +5728,17 @@ async function deleteSalesRecord(recordId) {
 
     }
 
+}
+
+function applyFinancialTone(element, value) {
+    if (!element) return;
+    const numericValue = Number(value) || 0;
+    element.classList.remove("financial-positive", "financial-negative", "financial-neutral");
+    element.classList.add(
+        numericValue < 0 ? "financial-negative" :
+        numericValue > 0 ? "financial-positive" :
+        "financial-neutral"
+    );
 }
 
 async function updateFinancialSummary() {
@@ -5680,12 +5825,13 @@ async function updateFinancialSummary() {
             )}`;
 
 
-        document.getElementById(
-            "dashboardProfit"
-        ).textContent =
-            `₦${netProfit.toLocaleString(
-                "en-NG"
-            )}`;
+        const dashboardProfit = document.getElementById("dashboardProfit");
+        const dashboardProfitLabel = document.querySelector('#summary .summary-card:has(#dashboardProfit) h3');
+        if (dashboardProfit) {
+            dashboardProfit.textContent = `₦${netProfit.toLocaleString("en-NG")}`;
+            applyFinancialTone(dashboardProfit, netProfit);
+        }
+        if (dashboardProfitLabel) dashboardProfitLabel.textContent = netProfit < 0 ? "Loss" : "Profit";
 
 
         console.log(
@@ -6119,64 +6265,73 @@ async function loadDailyRecordsHistory() {
 
 }
 
+function closeDailyHistory() {
+    const historySection = document.getElementById("dailyHistorySection");
+    const form = document.getElementById("dailyForm");
+    const moreMenu = document.getElementById("moreMenu");
+
+    // Clear every navigation panel first so no older CSS/handler can reopen
+    // the history section immediately after it is hidden.
+    hideAllNavigationPanels();
+
+    if (form) form.style.setProperty("display", "none", "important");
+    if (historySection) historySection.style.setProperty("display", "none", "important");
+    if (moreMenu) moreMenu.style.setProperty("display", "block", "important");
+
+    document.body.classList.add("navigation-active");
+    document.body.dataset.navigation = "more";
+
+    const nav = document.getElementById("bottomNav");
+    nav?.querySelectorAll(".bottom-nav-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.nav === "more");
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function setupDailyHistoryNavigation() {
+    const viewButton = document.getElementById("viewDailyHistoryButton");
+    const hideButton = document.getElementById("hideDailyHistoryButton");
+    const historySection = document.getElementById("dailyHistorySection");
 
-    const viewButton =
-        document.getElementById(
-            "viewDailyHistoryButton"
-        );
-
-    const hideButton =
-        document.getElementById(
-            "hideDailyHistoryButton"
-        );
-
-    const historySection =
-        document.getElementById(
-            "dailyHistorySection"
-        );
-
-
-    if (!viewButton || !hideButton || !historySection) {
-        return;
+    if (viewButton) {
+        viewButton.onclick = async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const form = document.getElementById("dailyForm");
+            if (form) form.style.setProperty("display", "none", "important");
+            if (historySection) {
+                historySection.style.setProperty("display", "block", "important");
+                await loadDailyRecordsHistory();
+                historySection.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        };
     }
 
+    if (hideButton) {
+        // Use one authoritative handler. This also works if older app code
+        // or browser state has attached a competing history handler.
+        hideButton.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            closeDailyHistory();
+        };
+    }
 
-    // Show history
-
-    viewButton.addEventListener(
-        "click",
-        async () => {
-
-            historySection.style.display = "block";
-
-            await loadDailyRecordsHistory();
-
-            historySection.scrollIntoView({
-                behavior: "smooth"
-            });
-
-        }
-    );
-
-
-    // Hide history
-
-    hideButton.addEventListener(
-        "click",
-        () => {
-
-            historySection.style.display = "none";
-
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
-
-        }
-    );
-
+    // Defensive event delegation: if the button is recreated dynamically,
+    // the X button still closes the history workspace.
+    if (!window.__farmKeeperDailyHistoryDelegation) {
+        document.addEventListener("click", (event) => {
+            const target = event.target?.closest?.("#hideDailyHistoryButton");
+            if (!target) return;
+            event.preventDefault();
+            event.stopPropagation();
+            closeDailyHistory();
+        }, true);
+        window.__farmKeeperDailyHistoryDelegation = true;
+    }
 }
+
 async function deleteDailyRecord(recordId) {
 
     const confirmed = confirm(
@@ -6411,6 +6566,263 @@ async function editDailyRecord(recordId) {
 
 }
 
+async function setupUserProfile() {
+
+    const profileSetupCard =
+        document.getElementById("profileSetupCard");
+
+    const saveProfileButton =
+        document.getElementById("saveProfileButton");
+
+    if (!profileSetupCard || !saveProfileButton) {
+        console.warn(
+            "Profile setup elements not found."
+        );
+        return;
+    }
+
+    // Always attach the Continue button handler.
+    // This prevents a database read error from leaving the button inactive.
+    saveProfileButton.onclick = saveUserProfile;
+
+    let existingProfile = null;
+
+    try {
+        existingProfile = await getSettings();
+    } catch (error) {
+        console.warn(
+            "Could not read profile from IndexedDB. Checking backup.",
+            error
+        );
+
+        try {
+            const backup =
+                localStorage.getItem("farmKeeperProfile");
+
+            existingProfile =
+                backup ? JSON.parse(backup) : null;
+        } catch (backupError) {
+            console.warn(
+                "Could not read profile backup:",
+                backupError
+            );
+        }
+    }
+
+    if (existingProfile && existingProfile.setupCompleted) {
+
+        farmKeeperProfile =
+            existingProfile;
+
+        profileSetupCard.style.display =
+            "none";
+
+        updateWelcomeMessage();
+
+        return;
+    }
+
+    profileSetupCard.style.display =
+        "block";
+}
+
+async function saveUserProfile() {
+
+    const userName =
+        document
+            .getElementById("userName")
+            .value
+            .trim();
+
+    const farmName =
+        document
+            .getElementById("farmName")
+            .value
+            .trim();
+
+    const selectedPreference =
+        document.querySelector(
+            'input[name="welcomePreference"]:checked'
+        );
+
+    const welcomePreference =
+        selectedPreference
+            ? selectedPreference.value
+            : "name";
+
+    if (!userName && !farmName) {
+
+        alert(
+            "Please enter your name or farm name."
+        );
+
+        return;
+    }
+
+    const profile = {
+
+        id: "profile",
+
+        userName: userName,
+
+        farmName: farmName,
+
+        welcomePreference:
+            welcomePreference,
+
+        setupCompleted: true,
+
+        updatedAt:
+            new Date().toISOString()
+
+    };
+
+    try {
+
+        // Save a local backup immediately so setup does not reappear
+        // even if IndexedDB is temporarily unavailable.
+        localStorage.setItem(
+            "farmKeeperProfile",
+            JSON.stringify(profile)
+        );
+
+        // Save to IndexedDB as the main persistent storage.
+        await saveSettings(profile);
+
+        farmKeeperProfile =
+            profile;
+
+        document.getElementById(
+            "profileSetupCard"
+        ).style.display = "none";
+
+        updateWelcomeMessage();
+
+        // Keep the user on the Home page after setup.
+        showNavigationSection("home");
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+        alert(
+            "✅ Your FarmKeeper profile has been saved."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Could not save FarmKeeper profile:",
+            error
+        );
+
+        // The local backup was already saved, so allow the user to continue.
+        farmKeeperProfile = profile;
+
+        document.getElementById(
+            "profileSetupCard"
+        ).style.display = "none";
+
+        updateWelcomeMessage();
+
+        showNavigationSection("home");
+
+        alert(
+            "⚠️ Your profile was saved on this device, but the database needs to be refreshed."
+        );
+
+    }
+
+}
+
+function updateWelcomeMessage() {
+
+    const title =
+        document.getElementById(
+            "welcomeTitle"
+        );
+
+    const subtitle =
+        document.getElementById(
+            "welcomeSubtitle"
+        );
+
+
+    if (!title || !subtitle) {
+        return;
+    }
+
+
+    if (!farmKeeperProfile) {
+        return;
+    }
+
+
+    const {
+        userName,
+        farmName,
+        welcomePreference
+    } = farmKeeperProfile;
+
+
+    let greeting = "";
+
+
+    if (
+        welcomePreference === "farm" &&
+        farmName
+    ) {
+
+        greeting =
+            `Welcome back to ${farmName} 🌱`;
+
+    }
+
+    else if (
+        welcomePreference === "both" &&
+        userName &&
+        farmName
+    ) {
+
+        greeting =
+            `Good day, ${userName} 👋`;
+
+        subtitle.textContent =
+            `Welcome back to ${farmName}.`;
+
+    }
+
+    else if (userName) {
+
+        greeting =
+            `Good day, ${userName} 👋`;
+
+    }
+
+    else if (farmName) {
+
+        greeting =
+            `Welcome back to ${farmName} 🌱`;
+
+    }
+
+
+    title.textContent =
+        greeting;
+
+
+    if (
+        welcomePreference !== "both"
+    ) {
+
+        subtitle.textContent =
+            "Keep track of your farm activities, expenses, crops and livestock.";
+
+    }
+
+}
+
 if ("serviceWorker" in navigator) {
 
     window.addEventListener("load", () => {
@@ -6436,3 +6848,832 @@ if ("serviceWorker" in navigator) {
     });
 
 }
+
+/* =========================================
+   FARM PROFILE EDITOR
+   ========================================= */
+function setupProfileEditor() {
+
+    const openButton = document.getElementById("openProfileEditorButton");
+    const closeButton = document.getElementById("closeProfileEditorButton");
+    const saveButton = document.getElementById("updateProfileButton");
+    const card = document.getElementById("profileEditorCard");
+
+    if (!openButton || !closeButton || !saveButton || !card) {
+        console.warn("Profile editor elements not found.");
+        return;
+    }
+
+    openButton.addEventListener("click", openProfileEditor);
+    closeButton.addEventListener("click", closeProfileEditor);
+    saveButton.addEventListener("click", saveEditedProfile);
+}
+
+async function openProfileEditor() {
+    const card = document.getElementById("profileEditorCard");
+    const moreMenu = document.getElementById("moreMenu");
+
+    if (!card) return;
+
+    try {
+        const profile = await getSettings();
+        if (!profile) return;
+
+        document.getElementById("editUserName").value = profile.userName || "";
+        document.getElementById("editFarmName").value = profile.farmName || "";
+
+        const preference = profile.welcomePreference || "name";
+        const radio = document.querySelector(
+            `input[name="editWelcomePreference"][value="${preference}"]`
+        );
+        if (radio) radio.checked = true;
+
+        if (moreMenu) moreMenu.style.display = "none";
+        card.style.display = "block";
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+        console.error("Could not open profile editor:", error);
+        alert("❌ Could not open your profile.");
+    }
+}
+
+function closeProfileEditor() {
+    const card = document.getElementById("profileEditorCard");
+    if (card) card.style.display = "none";
+
+    const nav = document.getElementById("bottomNav");
+    if (nav) {
+        nav.querySelectorAll(".bottom-nav-item").forEach(item => {
+            item.classList.toggle("active", item.dataset.nav === "more");
+        });
+    }
+
+    showNavigationSection("more");
+}
+
+async function saveEditedProfile() {
+    const userName = document.getElementById("editUserName").value.trim();
+    const farmName = document.getElementById("editFarmName").value.trim();
+    const selected = document.querySelector(
+        'input[name="editWelcomePreference"]:checked'
+    );
+
+    if (!userName && !farmName) {
+        alert("Please enter your name or farm name.");
+        return;
+    }
+
+    const welcomePreference = selected ? selected.value : "name";
+
+    const profile = {
+        id: "profile",
+        userName,
+        farmName,
+        welcomePreference,
+        setupCompleted: true,
+        updatedAt: new Date().toISOString()
+    };
+
+    try {
+        await saveSettings(profile);
+        farmKeeperProfile = profile;
+        updateWelcomeMessage();
+        closeProfileEditor();
+        alert("✅ Your FarmKeeper profile has been updated.");
+    } catch (error) {
+        console.error("Could not update FarmKeeper profile:", error);
+        alert("❌ Could not update your profile.");
+    }
+}
+
+
+/* =========================================
+   LEGACY FINANCE DATA MIGRATION
+   ========================================= */
+async function migrateLegacyFinanceRecords() {
+    try {
+        const dailyRecords = await getAllRecords("dailyRecords");
+        if (!dailyRecords.length) return;
+
+        const [existingLabour, existingSales] = await Promise.all([
+            getAllRecords("labour"),
+            getAllRecords("sales")
+        ]);
+
+        const labourSources = new Set(
+            existingLabour
+                .filter(r => r.sourceDailyRecordId != null)
+                .map(r => String(r.sourceDailyRecordId))
+        );
+        const salesSources = new Set(
+            existingSales
+                .filter(r => r.sourceDailyRecordId != null)
+                .map(r => `${r.sourceDailyRecordId}:${r.product}`)
+        );
+
+        for (const daily of dailyRecords) {
+            const labour = daily.labour || {};
+            const labourHasData = Number(labour.cost || 0) > 0 || Number(labour.workers || 0) > 0;
+            if (labourHasData && !labourSources.has(String(daily.id))) {
+                await addRecord("labour", {
+                    date: daily.date || new Date().toISOString().split("T")[0],
+                    workers: Number(labour.workers || 0),
+                    type: "Daily farm work",
+                    linkedEntity: null,
+                    cost: Number(labour.cost || 0),
+                    notes: daily.notes ? `Migrated from daily record. ${daily.notes}` : "Migrated from an earlier daily farm record.",
+                    sourceDailyRecordId: daily.id,
+                    createdAt: daily.createdAt || new Date().toISOString()
+                });
+            }
+
+            const sales = daily.sales || {};
+            const eggsSold = Number(sales.eggsSold || 0);
+            const eggSales = Number(sales.eggSales || 0);
+            const vegetableSales = Number(sales.vegetableSales || 0);
+
+            if (eggSales > 0 && !salesSources.has(`${daily.id}:Eggs`)) {
+                await addRecord("sales", {
+                    date: daily.date || new Date().toISOString().split("T")[0],
+                    product: "Eggs",
+                    linkedEntity: null,
+                    quantity: eggsSold > 0 ? eggsSold : 1,
+                    unit: eggsSold > 0 ? "Pieces" : "Other",
+                    amount: eggSales,
+                    customer: "",
+                    notes: daily.notes ? `Migrated from daily record. ${daily.notes}` : "Migrated from an earlier daily farm record.",
+                    sourceDailyRecordId: daily.id,
+                    createdAt: daily.createdAt || new Date().toISOString()
+                });
+            }
+
+            if (vegetableSales > 0 && !salesSources.has(`${daily.id}:Vegetables`)) {
+                await addRecord("sales", {
+                    date: daily.date || new Date().toISOString().split("T")[0],
+                    product: "Vegetables",
+                    linkedEntity: null,
+                    quantity: 1,
+                    unit: "Other",
+                    amount: vegetableSales,
+                    customer: "",
+                    notes: daily.notes ? `Migrated from daily record. ${daily.notes}` : "Migrated from an earlier daily farm record.",
+                    sourceDailyRecordId: daily.id,
+                    createdAt: daily.createdAt || new Date().toISOString()
+                });
+            }
+        }
+
+        console.log("✅ Legacy finance records checked/migrated.");
+    } catch (error) {
+        console.warn("Could not migrate legacy finance records:", error);
+    }
+}
+
+/* =========================================
+   CROP / ANIMAL FINANCE LINKING
+   ========================================= */
+async function populateFinanceEntitySelectors() {
+    const [crops, animals] = await Promise.all([getAllRecords("crops"), getAllRecords("animals")]);
+    ["farmExpenseCrop","farmLabourCrop","farmSalesCrop"].forEach(id => {
+        const select=document.getElementById(id); if(!select) return;
+        const current=select.value;
+        select.innerHTML='<option value="">General farm</option>';
+        if(crops.length){ const g=document.createElement("optgroup"); g.label="🌱 Crops"; crops.forEach(c=>{const o=document.createElement("option");o.value=`crop:${c.id}`;o.textContent=c.cropName+(c.variety?` — ${c.variety}`:"");g.appendChild(o);});select.appendChild(g);}
+        if(animals.length){ const g=document.createElement("optgroup"); g.label="🐾 Animals"; animals.forEach(a=>{const o=document.createElement("option");o.value=`animal:${a.id}`;o.textContent=`${a.type} — ${a.breed||"Group"}`;g.appendChild(o);});select.appendChild(g);}
+        if(current) select.value=current;
+    });
+}
+function getFinanceEntitySelection(id){
+    const value=document.getElementById(id)?.value||""; if(!value) return null;
+    const [kind, rawId]=value.split(":"); return {kind, id:Number(rawId)};
+}
+function setFinanceEntitySelection(id, entity){
+    const select=document.getElementById(id); if(!select||!entity) return; select.value=`${entity.kind}:${entity.id}`;
+}
+
+async function setupAnimalWorkspace(){
+    const add=document.getElementById("addAnimalButton");
+    const form=document.getElementById("animalForm");
+    const save=document.getElementById("saveAnimalButton");
+    if(!add||!form||!save) return;
+
+    const openForm=()=>{
+        form.style.display="block";
+        const date=document.getElementById("animalDate");
+        if(date && !date.value) date.value=new Date().toISOString().split("T")[0];
+        form.scrollIntoView({behavior:"smooth", block:"start"});
+    };
+
+    add.addEventListener("click", ()=>{ resetAnimalForm(); openForm(); });
+    save.addEventListener("click", saveAnimalGroup);
+
+    const cancelEdit=document.getElementById("cancelAnimalEditButton");
+    if(cancelEdit) cancelEdit.addEventListener("click", ()=>{ resetAnimalForm(); form.style.display="none"; });
+
+    const close=document.getElementById("closeAnimalFormButton");
+    if(close) close.addEventListener("click",()=>{ form.style.display="none"; });
+
+    const eggButton=document.getElementById("animalEggButton");
+    if(eggButton) eggButton.addEventListener("click",()=>openPoultryWorkspace());
+
+    const listButton=document.getElementById("animalListButton");
+    if(listButton) listButton.addEventListener("click",()=>{
+        const list=document.getElementById("animalListCard");
+        if(list) {
+            list.style.display="block";
+            list.scrollIntoView({behavior:"smooth", block:"start"});
+        }
+    });
+
+    const financeButton=document.getElementById("animalFinanceButton");
+    if(financeButton) financeButton.addEventListener("click",()=>{
+        const finance=document.getElementById("animalFinanceSummary");
+        if(finance) {
+            finance.style.display="block";
+            finance.scrollIntoView({behavior:"smooth", block:"start"});
+        }
+    });
+
+    // These are secondary views; keep them collapsed until their buttons are tapped.
+    const list=document.getElementById("animalListCard");
+    const finance=document.getElementById("animalFinanceSummary");
+    if(list) list.style.display="none";
+    if(finance) finance.style.display="none";
+
+    await loadAnimalGroups();
+}
+
+function openPoultryWorkspace(){
+    const poultry=document.getElementById("poultrySection");
+    const animal=document.getElementById("animalWorkspace");
+    if(animal) animal.style.display="none";
+    if(poultry){
+        poultry.classList.add("poultry-open");
+        poultry.style.display="block";
+        poultry.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+}
+let editingAnimalId = null;
+
+function resetAnimalForm(){
+    editingAnimalId = null;
+    const form=document.getElementById("animalForm");
+    const title=document.getElementById("animalFormTitle");
+    const save=document.getElementById("saveAnimalButton");
+    const cancel=document.getElementById("cancelAnimalEditButton");
+    if(title) title.textContent="Add Animal Group";
+    if(save) save.textContent="💾 Save Animal Group";
+    if(cancel) cancel.style.display="none";
+    ["animalType","animalBreed","animalCount","animalDate","animalNotes"].forEach(id=>{const el=document.getElementById(id); if(el) el.value="";});
+}
+
+async function editAnimalGroup(id){
+    const animals=await getAllRecords("animals");
+    const animal=animals.find(a=>Number(a.id)===Number(id));
+    if(!animal) return;
+    editingAnimalId=animal.id;
+    document.getElementById("animalType").value=animal.type||"";
+    document.getElementById("animalBreed").value=animal.breed||"";
+    document.getElementById("animalCount").value=animal.count??"";
+    document.getElementById("animalDate").value=animal.dateAcquired||"";
+    document.getElementById("animalNotes").value=animal.notes||"";
+    document.getElementById("animalFormTitle").textContent="Edit Animal Group";
+    document.getElementById("saveAnimalButton").textContent="💾 Update Animal Group";
+    document.getElementById("cancelAnimalEditButton").style.display="inline-flex";
+    document.getElementById("animalForm").style.display="block";
+    document.getElementById("animalForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+async function deleteAnimalGroup(id){
+    const animals=await getAllRecords("animals");
+    const animal=animals.find(a=>Number(a.id)===Number(id));
+    if(!animal) return;
+    if(!confirm(`Delete ${animal.type}${animal.breed?` (${animal.breed})`:""}?\n\nThis removes only the animal group. Linked Finance records will remain in Finance.`)) return;
+    try{
+        await deleteRecord("animals", animal.id);
+        await loadAnimalGroups();
+        await populateFinanceEntitySelectors();
+        alert("🗑️ Animal group deleted.");
+    }catch(e){ console.error(e); alert("❌ Could not delete animal group."); }
+}
+
+async function saveAnimalGroup(){
+    const record={type:document.getElementById("animalType").value,breed:document.getElementById("animalBreed").value.trim(),count:Number(document.getElementById("animalCount").value)||0,dateAcquired:document.getElementById("animalDate").value,notes:document.getElementById("animalNotes").value.trim(),createdAt:new Date().toISOString()};
+    if(!record.type||!record.count||!record.dateAcquired){alert("Please complete animal type, number and date acquired.");return;}
+    try{
+        if(editingAnimalId!==null){
+            record.id=editingAnimalId;
+            const animals=await getAllRecords("animals");
+            const old=animals.find(a=>Number(a.id)===Number(editingAnimalId));
+            record.createdAt=old?.createdAt||record.createdAt;
+            await updateRecord("animals",record);
+        }else{
+            await addRecord("animals",record);
+        }
+        const wasEditing = editingAnimalId !== null;
+        document.getElementById("animalForm").style.display="none";
+        resetAnimalForm();
+        await loadAnimalGroups();
+        await populateFinanceEntitySelectors();
+        alert(wasEditing?"✅ Animal group updated successfully!":"✅ Animal group saved successfully!");
+    }catch(e){console.error(e);alert(editingAnimalId!==null?"❌ Could not update animal group.":"❌ Could not save animal group.");}
+}
+async function loadAnimalGroups(){
+    const list=document.getElementById("animalList"); if(!list) return;
+    const animals=await getAllRecords("animals");
+    if(!animals.length){list.innerHTML='<p class="empty-message">No animal groups recorded yet.</p>';return;}
+    const [expenses,labour,sales]=await Promise.all([getAllRecords("expenses"),getAllRecords("labour"),getAllRecords("sales")]);
+    list.innerHTML=animals.map(a=>{const cost=expenses.filter(x=>x.linkedEntity?.kind==="animal"&&Number(x.linkedEntity.id)===Number(a.id)).reduce((n,x)=>n+Number(x.amount||0),0)+labour.filter(x=>x.linkedEntity?.kind==="animal"&&Number(x.linkedEntity.id)===Number(a.id)).reduce((n,x)=>n+Number(x.cost||0),0);const revenue=sales.filter(x=>x.linkedEntity?.kind==="animal"&&Number(x.linkedEntity.id)===Number(a.id)).reduce((n,x)=>n+Number(x.amount||0),0);return `<div class="animal-card"><div class="animal-card-heading"><h4>🐾 ${a.type}</h4><div class="animal-card-actions"><button type="button" class="small-button" onclick="editAnimalGroup(${Number(a.id)})">✏️ Edit</button><button type="button" class="small-button danger-button" onclick="deleteAnimalGroup(${Number(a.id)})">🗑️ Delete</button></div></div><p><strong>Breed:</strong> ${a.breed||"Not specified"}</p><p><strong>Count:</strong> ${a.count}</p><p><strong>Acquired:</strong> ${a.dateAcquired}</p><div class="animal-finance-mini"><span>Costs ₦${cost.toLocaleString("en-NG")}</span><span>Sales ₦${revenue.toLocaleString("en-NG")}</span><strong class="${(revenue-cost)<0?'financial-negative':(revenue-cost)>0?'financial-positive':'financial-neutral'}">${(revenue-cost)<0?'Loss':'Profit'} ₦${(revenue-cost).toLocaleString("en-NG")}</strong></div>${a.notes?`<p>📝 ${a.notes}</p>`:""}<div class="animal-photos-inline" id="animalPhotos-${Number(a.id)}"><small>📷 Loading photos...</small></div></div>`;}).join("");
+    await Promise.all(animals.map(async a => { try { renderEntityPhotos(document.getElementById(`animalPhotos-${Number(a.id)}`), await getPhotosForTarget(`animal:${a.id}`)); } catch(e) { console.warn("Could not load animal photos", e); } }));
+    const totalCost=animals.reduce((n,a)=>n+expenses.filter(x=>x.linkedEntity?.kind==="animal"&&Number(x.linkedEntity.id)===Number(a.id)).reduce((z,x)=>z+Number(x.amount||0),0)+labour.filter(x=>x.linkedEntity?.kind==="animal"&&Number(x.linkedEntity.id)===Number(a.id)).reduce((z,x)=>z+Number(x.cost||0),0),0);
+    const totalRevenue=animals.reduce((n,a)=>n+sales.filter(x=>x.linkedEntity?.kind==="animal"&&Number(x.linkedEntity.id)===Number(a.id)).reduce((z,x)=>z+Number(x.amount||0),0),0);
+    const animalProfit = totalRevenue - totalCost;
+    document.getElementById("animalFinanceSummaryContent").innerHTML=`<div class="crop-performance-grid"><div><strong>₦${totalCost.toLocaleString("en-NG")}</strong><span>Costs</span></div><div><strong>₦${totalRevenue.toLocaleString("en-NG")}</strong><span>Sales</span></div><div><strong class="${animalProfit<0?'financial-negative':animalProfit>0?'financial-positive':'financial-neutral'}">₦${animalProfit.toLocaleString("en-NG")}</strong><span>${animalProfit<0?'Loss':'Profit'}</span></div></div>`;
+}
+
+/* =========================================
+   MOBILE BOTTOM NAVIGATION
+   The first screen is a full-app landing page.
+   Once a navigation item is chosen, the app switches
+   to a focused workspace.
+   ========================================= */
+function setupBottomNavigation() {
+    const nav = document.getElementById("bottomNav");
+    if (!nav) return;
+
+    document.getElementById("homeCropsGlance")?.addEventListener("click", () => document.querySelector('.bottom-nav-item[data-nav="crops"]')?.click());
+    document.getElementById("homeAnimalsGlance")?.addEventListener("click", () => document.querySelector('.bottom-nav-item[data-nav="animals"]')?.click());
+    document.getElementById("homeRecordsGlance")?.addEventListener("click", () => {
+        document.querySelector('.bottom-nav-item[data-nav="more"]')?.click();
+        showMorePanel("daily");
+    });
+
+    nav.querySelectorAll(".bottom-nav-item").forEach(button => {
+        button.addEventListener("click", async () => {
+            const destination = button.dataset.nav;
+
+            nav.querySelectorAll(".bottom-nav-item").forEach(item => {
+                item.classList.toggle("active", item === button);
+            });
+
+            // Home is the complete dashboard shown in the approved Home design.
+            // Selecting Home must always restore the full Home landing page,
+            // including the financial cards, farm overview, search, reminders,
+            // quick actions and Farm Records cards.
+            if (destination === "home") {
+                document.body.classList.add("navigation-active");
+                await returnToHomeLanding();
+                return;
+            }
+
+            document.body.classList.add("navigation-active");
+            await showNavigationSection(destination);
+        });
+    });
+
+    const closeMore = document.getElementById("closeMoreButton");
+    if (closeMore) {
+        closeMore.addEventListener("click", resetNavigationToLanding);
+    }
+
+    const moreDaily = document.getElementById("moreDailyButton");
+    if (moreDaily) moreDaily.addEventListener("click", () => {
+        openDailyRecordWorkspace();
+    });
+
+    const moreVisit = document.getElementById("moreVisitButton");
+    if (moreVisit) moreVisit.addEventListener("click", async () => {
+        showMorePanel("visit");
+        setCurrentDateTime();
+        await loadVisitHistory();
+    });
+
+    const moreReports = document.getElementById("moreReportsButton");
+    if (moreReports) moreReports.addEventListener("click", () => {
+        showMorePanel("reports");
+    });
+
+    const moreReminders = document.getElementById("moreRemindersButton");
+    if (moreReminders) moreReminders.addEventListener("click", async () => {
+        showMorePanel("reminders");
+        await populateReminderTargets();
+        await loadReminders();
+    });
+
+    // Home quick actions open the focused Daily Records workspace directly.
+    const dailyHistoryHomeButton = document.getElementById("dailyHistoryHomeButton");
+    if (dailyHistoryHomeButton) {
+        dailyHistoryHomeButton.addEventListener("click", () => {
+            const nav = document.getElementById("bottomNav");
+            nav?.querySelectorAll(".bottom-nav-item").forEach(item => {
+                item.classList.toggle("active", item.dataset.nav === "more");
+            });
+            document.body.classList.add("navigation-active");
+            document.body.dataset.navigation = "more";
+            hideAllNavigationPanels();
+            const moreMenu = document.getElementById("moreMenu");
+            if (moreMenu) moreMenu.style.display = "block";
+            const history = document.getElementById("dailyHistorySection");
+            const form = document.getElementById("dailyForm");
+            if (form) form.style.display = "none";
+            if (history) {
+                history.style.display = "block";
+                loadDailyRecordsHistory();
+                history.scrollIntoView({behavior:"smooth", block:"start"});
+            }
+        });
+    }
+
+    // Start on the complete Home landing page with no nav item active.
+    document.body.removeAttribute("data-navigation");
+    showFullAppLanding();
+}
+
+function getNavigationSections() {
+    return {
+        // Home is the complete dashboard/landing page shown in the user's design.
+        home: "landing",
+
+        // Crops = crop records, crop list/details and crop activities only.
+        crops: [
+            "cropWorkspaceIntro",
+            "cropForm",
+            "cropListSection",
+            "cropDetailsSection",
+            "cropActivityForm",
+            "cropActivityOverview"
+        ],
+
+        // Animals = poultry/flock and egg production only.
+        animals: [
+            "animalWorkspace",
+            "poultrySection"
+        ],
+
+        // Finance = expenses, labour and sales/income only.
+        finance: [
+            "financeWorkspace",
+            "farmExpenseSection",
+            "farmLabourSection",
+            "farmSalesSection"
+        ],
+
+        // More = the additional feature menu only.
+        more: [
+            "moreMenu"
+        ]
+    };
+}
+
+function getAllNavigationPanels() {
+    return [
+        "welcomeCard",
+        "profileSetupCard",
+        "summary",
+        "dashboardLastVisit",
+        "homeAtAGlance",
+        "homeSearchCard",
+        "homeRemindersCard",
+        "quick-actions",
+        "cropWorkspaceIntro",
+        "cropForm",
+        "cropListSection",
+        "cropDetailsSection",
+        "cropActivityForm",
+        "cropActivityOverview",
+        "animalWorkspace",
+        "poultrySection",
+        "financeWorkspace",
+        "farmExpenseSection",
+        "farmLabourSection",
+        "farmSalesSection",
+        "visitForm",
+        "dailyForm",
+        "dailyHistorySection",
+        "reportsSection",
+        "remindersSection",
+        "farmSearchSection",
+        "farmPhotosSection",
+        "profileEditorCard",
+        "moreMenu",
+        "modules"
+    ];
+}
+
+function getLandingPanels() {
+    // Home is intentionally a dashboard, not a full crop workspace.
+    // Crop management lives under the Crops bottom-navigation tab.
+    return [
+        "welcomeCard",
+        "summary",
+        "dashboardLastVisit",
+        "homeAtAGlance",
+        "homeSearchCard",
+        "homeRemindersCard",
+        "quick-actions",
+        "modules"
+    ];
+}
+
+function getElementByNavigationId(id) {
+    return document.getElementById(id) || document.querySelector("." + id);
+}
+
+function hideAllNavigationPanels() {
+    getAllNavigationPanels().forEach(id => {
+        const element = getElementByNavigationId(id);
+        if (element) element.style.display = "none";
+    });
+}
+
+async function refreshHomeAtAGlance() {
+    try {
+        const [crops, animals, dailyRecords] = await Promise.all([
+            getAllRecords("crops"),
+            getAllRecords("animals"),
+            getAllRecords("dailyRecords")
+        ]);
+        const today = new Date().toISOString().split("T")[0];
+        const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+        set("homeCropCount", crops.length);
+        set("homeAnimalCount", animals.length);
+        set("homeTodayRecordCount", dailyRecords.filter(r => r.date === today).length);
+        set("homeTodayDate", new Date().toLocaleDateString("en-NG", {day:"numeric", month:"short", year:"numeric"}));
+        await refreshHomeReminders();
+    } catch (error) {
+        console.warn("Could not refresh Home overview:", error);
+    }
+}
+
+async function refreshHomeReminders() {
+    const list = document.getElementById("homeReminderList");
+    if (!list) return;
+    try {
+        const reminders = (await getAllRecords("reminders"))
+            .filter(r => r.type === "task" && !r.completed)
+            .sort((a,b) => new Date(`${a.dueDate}T${a.dueTime||"09:00"}`) - new Date(`${b.dueDate}T${b.dueTime||"09:00"}`));
+        if (!reminders.length) {
+            list.innerHTML = `<div class="home-empty-reminders"><span>🌤️</span><div><strong>No reminders set</strong><small>Add tasks, vaccinations, harvest dates or weekly farm jobs.</small></div><button type="button" class="home-reminder-add" id="homeAddReminderButton">＋ Add</button></div>`;
+            document.getElementById("homeAddReminderButton")?.addEventListener("click", openHomeReminders);
+            return;
+        }
+        list.innerHTML = reminders.slice(0,4).map(r => `<button type="button" class="home-reminder-row" data-reminder-id="${Number(r.id)}"><span class="home-reminder-bell">🔔</span><span class="home-reminder-copy"><strong>${escapeHtml(r.title)}</strong><small>${escapeHtml(reminderDueLabel(r))}</small></span><span class="home-reminder-arrow">›</span></button>`).join("");
+        list.querySelectorAll(".home-reminder-row").forEach(btn => btn.addEventListener("click", openHomeReminders));
+    } catch (e) {
+        console.warn("Could not refresh Home reminders:", e);
+        list.innerHTML = '<p class="home-search-hint">Could not load reminders.</p>';
+    }
+}
+
+function openHomeReminders() {
+    document.querySelector('.bottom-nav-item[data-nav="more"]')?.click();
+    setTimeout(async () => {
+        showMorePanel("reminders");
+        await populateReminderTargets();
+        await loadReminders();
+    }, 0);
+}
+
+function showFullAppLanding() {
+    hideAllNavigationPanels();
+
+    getLandingPanels().forEach(id => {
+        const element = getElementByNavigationId(id);
+        if (element) element.style.display = "block";
+    });
+
+    refreshHomeAtAGlance();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetNavigationToLanding() {
+    const nav = document.getElementById("bottomNav");
+    if (nav) {
+        nav.querySelectorAll(".bottom-nav-item").forEach(item => {
+            item.classList.remove("active");
+        });
+    }
+
+    document.body.classList.remove("navigation-active");
+    document.body.removeAttribute("data-navigation");
+    showFullAppLanding();
+}
+
+async function returnToHomeLanding() {
+    const nav = document.getElementById("bottomNav");
+    if (nav) {
+        nav.querySelectorAll(".bottom-nav-item").forEach(item => {
+            item.classList.toggle("active", item.dataset.nav === "home");
+        });
+    }
+
+    document.body.classList.add("navigation-active");
+    document.body.dataset.navigation = "home";
+    showFullAppLanding();
+}
+
+async function showNavigationSection(destination) {
+    const sections = getNavigationSections();
+
+    if (sections[destination] === "landing") {
+        document.body.dataset.navigation = "home";
+        showFullAppLanding();
+        return;
+    }
+
+    hideAllNavigationPanels();
+    document.body.dataset.navigation = destination;
+
+    const ids = sections[destination] || [];
+    ids.forEach(id => {
+        const element = getElementByNavigationId(id);
+        if (element) element.style.display = "block";
+    });
+
+    // A workspace should never inherit Home dashboard cards.
+    ["summary", "dashboardLastVisit", "homeAtAGlance", "quick-actions", "welcomeCard", "modules"].forEach(id => {
+        const element = getElementByNavigationId(id);
+        if (element) element.style.display = "none";
+    });
+
+    // Crops opens as a workspace: overview + crop list + recent activities.
+    if (destination === "crops") {
+        const form = document.getElementById("cropForm");
+        const details = document.getElementById("cropDetailsSection");
+        const activity = document.getElementById("cropActivityForm");
+        const list = document.getElementById("cropListSection");
+        const overview = document.getElementById("cropActivityOverview");
+        if (form) form.style.display = "none";
+        if (details) details.style.display = "none";
+        if (activity) activity.style.display = "none";
+        if (list) { list.classList.remove("crop-list-open"); list.style.display = "none"; }
+        if (overview) { overview.classList.remove("crop-overview-open"); overview.style.display = "none"; }
+        document.body.classList.remove("crop-form-open");
+        form?.classList.remove("crop-form-open");
+        populateFinanceEntitySelectors();
+    }
+
+    if (destination === "finance") {
+        const workspace = document.getElementById("financeWorkspace");
+        const expense = document.getElementById("farmExpenseSection");
+        const labour = document.getElementById("farmLabourSection");
+        const sales = document.getElementById("farmSalesSection");
+        [expense, labour, sales].forEach(el => { if (el) el.style.display = "none"; });
+        if (workspace) workspace.style.display = "block";
+        await populateFinanceEntitySelectors();
+        await Promise.all([loadExpenseHistory(), loadLabourHistory(), loadSalesHistory(), refreshFinanceDashboard()]);
+    }
+
+    if (destination === "animals") {
+        const animal = document.getElementById("animalWorkspace");
+        const poultry = document.getElementById("poultrySection");
+        const list = document.getElementById("animalListCard");
+        const finance = document.getElementById("animalFinanceSummary");
+        const form = document.getElementById("animalForm");
+        if (animal) animal.style.display = "block";
+        if (poultry) { poultry.classList.remove("poultry-open"); poultry.style.display = "none"; }
+        if (list) list.style.display = "none";
+        if (finance) finance.style.display = "none";
+        if (form) form.style.display = "none";
+        loadAnimalGroups();
+        populateFinanceEntitySelectors();
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function closeNavigationPanels() {
+    resetNavigationToLanding();
+}
+
+
+
+/* =========================================
+   PHASE 2 — USEFUL FARM TOOLS
+   Reminders, visits, reports, search and photos.
+   ========================================= */
+async function setupPhase2Features() {
+    const visitBack = document.getElementById("visitBackButton");
+    visitBack?.addEventListener("click", () => showMorePanel("menu"));
+
+    const searchButton = document.getElementById("moreSearchButton");
+    const photosButton = document.getElementById("morePhotosButton");
+    const searchBack = document.getElementById("farmSearchBackButton");
+    const photosBack = document.getElementById("farmPhotosBackButton");
+
+    searchButton?.addEventListener("click", () => showMorePanel("search"));
+    photosButton?.addEventListener("click", async () => {
+        showMorePanel("photos");
+        await populatePhotoTargets();
+        await loadFarmPhotos();
+    });
+    searchBack?.addEventListener("click", () => showMorePanel("menu"));
+    photosBack?.addEventListener("click", () => showMorePanel("menu"));
+
+    document.getElementById("farmSearchInput")?.addEventListener("input", runFarmSearch);
+    document.getElementById("saveFarmPhotoButton")?.addEventListener("click", saveFarmPhoto);
+
+    // Make the More menu the true parent of Phase 2 screens.
+    const oldShowMorePanel = window.showMorePanel;
+}
+
+function showMorePanel(panel, mode = null) {
+    hideAllNavigationPanels();
+    const moreMenu = document.getElementById("moreMenu");
+    if (moreMenu) moreMenu.style.display = panel === "menu" ? "block" : "none";
+
+    const targets = {
+        visit: ["visitForm"], reports: ["reportsSection"], reminders: ["remindersSection"],
+        profile: ["profileEditorCard"], search: ["farmSearchSection"], photos: ["farmPhotosSection"]
+    };
+    if (panel === "daily") {
+        const form = document.getElementById("dailyForm"), history = document.getElementById("dailyHistorySection");
+        if (form) form.style.display = mode === "history" ? "none" : "block";
+        if (history) history.style.display = mode === "history" ? "block" : "none";
+        if (mode === "history") loadDailyRecordsHistory();
+    } else if (targets[panel]) {
+        targets[panel].forEach(id => { const el=document.getElementById(id); if(el) el.style.display="block"; });
+        if (panel === "search") { const input=document.getElementById("farmSearchInput"); input?.focus(); }
+        if (panel === "photos") loadFarmPhotos();
+    }
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function populatePhotoTargets() {
+    const select=document.getElementById("farmPhotoTarget"); if(!select) return;
+    const [crops,animals,visits]=await Promise.all([getAllRecords("crops"),getAllRecords("animals"),getAllRecords("visits")]);
+    select.innerHTML='<option value="general">🌾 General Farm</option>'+
+        crops.map(c=>`<option value="crop:${c.id}">🌱 Crop: ${escapeHtml(c.cropName||"Crop")}${c.plot?` — ${escapeHtml(c.plot)}`:""}</option>`).join("")+ 
+        animals.map(a=>`<option value="animal:${a.id}">🐄 Animal: ${escapeHtml(a.type||"Animal")}${a.breed?` — ${escapeHtml(a.breed)}`:""}</option>`).join("")+
+        visits.map(v=>`<option value="visit:${v.id}">📍 Visit: ${escapeHtml(v.date)}${v.location?` — ${escapeHtml(v.location)}`:""}</option>`).join("");
+}
+
+async function getPhotosForTarget(target) {
+    const photos = await getAllRecords("photos");
+    return photos.filter(p => String(p.target || "general") === String(target)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function renderEntityPhotos(container, photos) {
+    if (!container) return;
+    if (!photos.length) { container.innerHTML = '<p class="empty-message">No photos attached to this record.</p>'; return; }
+    container.innerHTML = photos.map(p => `<div class="entity-photo-item"><img src="${p.dataUrl}" alt="${escapeHtml(p.caption || "Farm photo")}" loading="lazy"><small>${escapeHtml(p.caption || "Farm photo")}</small></div>`).join("");
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
+}
+
+async function saveFarmPhoto() {
+    const input=document.getElementById("farmPhotoInput"), file=input?.files?.[0];
+    if(!file){ alert("Please choose a photo first."); return; }
+    if(!file.type.startsWith("image/")){ alert("Please choose an image file."); return; }
+    if(file.size > 5*1024*1024){ alert("Please choose an image smaller than 5 MB."); return; }
+    const reader=new FileReader();
+    reader.onload=async()=>{
+        try {
+            await addRecord("photos", { target:document.getElementById("farmPhotoTarget")?.value||"general", caption:document.getElementById("farmPhotoCaption")?.value.trim()||"", dataUrl:reader.result, createdAt:new Date().toISOString() });
+            input.value=""; document.getElementById("farmPhotoCaption").value=""; await loadFarmPhotos(); alert("✅ Photo saved.");
+        } catch(e){ console.error(e); alert("❌ Could not save photo."); }
+    };
+    reader.readAsDataURL(file);
+}
+
+async function loadFarmPhotos() {
+    const grid=document.getElementById("farmPhotosGrid"); if(!grid) return;
+    try {
+        const photos=(await getAllRecords("photos")).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+        if(!photos.length){grid.innerHTML='<p class="empty-message">No farm photos yet.</p>';return;}
+        grid.innerHTML=photos.map(p=>`<article class="farm-photo-card"><img src="${p.dataUrl}" alt="${escapeHtml(p.caption||"Farm photo")}" loading="lazy"><div><strong>${escapeHtml(p.caption||"Farm photo")}</strong><small>${new Date(p.createdAt).toLocaleDateString("en-NG")}</small></div><button type="button" class="small-button danger-button" onclick="deleteFarmPhoto(${Number(p.id)})">🗑️ Delete</button></article>`).join("");
+    } catch(e){ console.error("Could not load farm photos",e); }
+}
+async function deleteFarmPhoto(id){ if(!confirm("Delete this photo?")) return; await deleteRecord("photos",Number(id)); await loadFarmPhotos(); }
+
+async function performFarmSearch(q, out) {
+    if(!out) return;
+    if(q.length<2){out.innerHTML='<p class="home-search-hint">Type at least 2 characters to search.</p>';return;}
+    const stores=["crops","animals","expenses","labour","sales","dailyRecords","visits","cropActivities"];
+    const data=await Promise.all(stores.map(s=>getAllRecords(s)));
+    const labels={crops:"🌱 Crop",animals:"🐄 Animal",expenses:"💸 Expense",labour:"👷 Labour",sales:"💵 Sale",dailyRecords:"📝 Daily Record",visits:"📍 Farm Visit",cropActivities:"📜 Crop Activity"};
+    const rows=[];
+    stores.forEach((store,i)=>data[i].forEach(r=>{ const text=JSON.stringify(r).toLowerCase(); if(text.includes(q)) rows.push({store,r}); }));
+    if(!rows.length){out.innerHTML='<p class="home-search-hint">No matching farm records found.</p>';return;}
+    out.innerHTML=`<div class="search-results-count">${rows.length} result${rows.length===1?"":"s"}</div>`+rows.slice(0,8).map(({store,r})=>{
+        const title=r.cropName||r.type||r.category||r.product||r.workType||r.notes||"Farm record";
+        const date=r.date||r.plantingDate||r.dateAcquired||r.createdAt?.slice(0,10)||"";
+        return `<div class="home-search-result"><span class="home-search-result-type">${labels[store]}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(date)}</small></div>`;
+    }).join("");
+}
+
+async function runFarmSearch() {
+    const q=(document.getElementById("farmSearchInput")?.value||"").trim().toLowerCase();
+    await performFarmSearch(q, document.getElementById("farmSearchResults"));
+}
+
+function setupHomeSearch() {
+    const input=document.getElementById("homeSearchInput"), out=document.getElementById("homeSearchResults"), clear=document.getElementById("homeSearchClear");
+    if(!input || !out) return;
+    let timer;
+    input.addEventListener("input",()=>{ clearTimeout(timer); timer=setTimeout(()=>performFarmSearch(input.value.trim().toLowerCase(),out),180); });
+    clear?.addEventListener("click",()=>{input.value="";out.innerHTML='<p class="home-search-hint">Search your farm records without leaving Home.</p>';input.focus();});
+}
+

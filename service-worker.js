@@ -1,4 +1,4 @@
-const CACHE_NAME = "farmkeeper-v2";
+const CACHE_NAME = "farmkeeper-v20";
 
 const FILES_TO_CACHE = [
     "./",
@@ -112,4 +112,13 @@ self.addEventListener("fetch", event => {
 
     );
 
+});
+
+self.addEventListener("notificationclick", event => {
+    event.notification.close();
+    event.waitUntil(clients.matchAll({type:"window", includeUncontrolled:true}).then(list => {
+        const existing=list.find(c => "focus" in c);
+        if(existing) return existing.focus();
+        return clients.openWindow("./");
+    }));
 });

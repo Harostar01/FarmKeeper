@@ -1,5 +1,5 @@
                                                                                                                               const DB_NAME = "FarmKeeperDB";
-const DB_VERSION = 5;
+const DB_VERSION = 10;
 
 let db;
 
@@ -10,14 +10,56 @@ function openDatabase() {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
         request.onerror = () => {
-            reject("Could not open FarmKeeper database.");
+
+            console.error(
+                "FarmKeeper database error:",
+                request.error
+            );
+
+            reject(
+                request.error ||
+                "Could not open FarmKeeper database."
+            );
+
         };
 
-        request.onsuccess = (event) => {
-            db = event.target.result;
-            console.log("FarmKeeper database opened successfully.");
-            resolve(db);
+
+        request.onblocked = () => {
+
+            console.warn(
+                "⚠️ FarmKeeper database upgrade is blocked. " +
+                "Please close other FarmKeeper tabs."
+            );
+
         };
+
+
+        request.onsuccess = (event) => {
+
+            db = event.target.result;
+
+
+            // Close this connection if another tab
+            // requests a database version upgrade.
+            db.onversionchange = () => {
+
+                console.log(
+                    "FarmKeeper database version is changing. Closing connection."
+                );
+
+                db.close();
+
+            };
+
+
+            console.log(
+                "FarmKeeper database opened successfully."
+            );
+
+
+            resolve(db);
+
+};
 
         request.onupgradeneeded = (event) => {
 
@@ -73,6 +115,11 @@ function openDatabase() {
                 });
             }
 
+            // Animal records
+            if (!database.objectStoreNames.contains("animals")) {
+                database.createObjectStore("animals", { keyPath: "id", autoIncrement: true });
+            }
+
             // Expense records
             if (!database.objectStoreNames.contains("expenses")) {
                 database.createObjectStore("expenses", {
@@ -103,13 +150,29 @@ function openDatabase() {
                     keyPath: "id",
                     autoIncrement: true
                 });
-            }// Reminder settings
+            }
+            // Reminder settings
             if (!database.objectStoreNames.contains("reminders")) {
                 database.createObjectStore("reminders", {
                     keyPath: "id",
                     autoIncrement: true
                 });
-}
+            }
+            // Farm photo records (crop, animal or general farm photos)
+            if (!database.objectStoreNames.contains("photos")) {
+                database.createObjectStore("photos", {
+                    keyPath: "id",
+                    autoIncrement: true
+                });
+            }
+
+            // User and farm personalization settings
+            if (!database.objectStoreNames.contains("settings")) {
+                database.createObjectStore("settings", {
+                    keyPath: "id"
+                });
+            }
+
 
             console.log("FarmKeeper database structure created.");
         };
@@ -260,6 +323,104 @@ function deleteRecord(storeName, id) {
 
             reject(request.error);
 
+        };
+
+    });
+
+}
+
+// Save user/farm settings
+function saveSettings(settings) {
+
+    return new Promise((resolve, reject) => {
+
+        const transaction = db.transaction(
+            "settings",
+            "readwrite"
+        );
+
+        const store =
+            transaction.objectStore("settings");
+
+        const request =
+            store.put(settings);
+
+        request.onsuccess = () => {
+            try {
+                localStorage.setItem(
+                    "farmKeeperProfile",
+                    JSON.stringify(settings)
+                );
+            } catch (error) {
+                console.warn(
+                    "Could not update profile backup:",
+                    error
+                );
+            }
+
+            resolve(request.result);
+        };
+
+        request.onerror = () => {
+            reject(request.error);
+        };
+
+    });
+
+}
+
+
+// Get user/farm settings
+function getSettings() {
+
+    return new Promise((resolve, reject) => {
+
+        let transaction;
+
+        try {
+            transaction = db.transaction(
+                "settings",
+                "readonly"
+            );
+        } catch (error) {
+            reject(error);
+            return;
+        }
+
+        const store =
+            transaction.objectStore("settings");
+
+        const request =
+            store.get("profile");
+
+        request.onsuccess = () => {
+
+            const profile = request.result;
+
+            if (profile) {
+                resolve(profile);
+                return;
+            }
+
+            try {
+                const backup =
+                    localStorage.getItem(
+                        "farmKeeperProfile"
+                    );
+
+                resolve(
+                    backup
+                        ? JSON.parse(backup)
+                        : null
+                );
+            } catch (error) {
+                resolve(null);
+            }
+
+        };
+
+        request.onerror = () => {
+            reject(request.error);
         };
 
     });

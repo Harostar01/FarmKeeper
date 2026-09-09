@@ -21,18 +21,107 @@
         <p>Simple farm records made easy.</p>
     </header>
 
-    <main class="container">
+    <section class="welcome-card" id="welcomeCard">
 
-        <section class="welcome-card">
-            <h2>Good day, Olamilekan 👋</h2>
+        <h2 id="welcomeTitle">
+            Welcome to FarmKeeper 🌱
+        </h2>
+
+        <p id="welcomeSubtitle">
+            Keep track of your farm activities,
+            crops, livestock and finances in one place.
+        </p>
+
+    </section>
+
+       <section
+            class="profile-setup-card"
+            id="profileSetupCard"
+        >
+
+            <h2>🌱 Welcome to FarmKeeper</h2>
 
             <p>
-                Keep track of your farm activities,
-                expenses, crops and egg production.
+                Let's personalize your farm experience.
             </p>
+
+
+            <label for="userName">
+                What should we call you?
+            </label>
+
+            <input
+                type="text"
+                id="userName"
+                placeholder="Enter your name"
+                maxlength="50"
+            >
+
+
+            <label for="farmName">
+                Farm name
+                <span>(optional)</span>
+            </label>
+
+            <input
+                type="text"
+                id="farmName"
+                placeholder="Enter your farm name"
+                maxlength="80"
+            >
+
+
+            <label>
+                How should we welcome you?
+            </label>
+
+
+            <div class="welcome-options">
+
+                <label>
+                    <input
+                        type="radio"
+                        name="welcomePreference"
+                        value="name"
+                        checked
+                    >
+                    My name
+                </label>
+
+
+                <label>
+                    <input
+                        type="radio"
+                        name="welcomePreference"
+                        value="farm"
+                    >
+                    My farm
+                </label>
+
+
+                <label>
+                    <input
+                        type="radio"
+                        name="welcomePreference"
+                        value="both"
+                    >
+                    Both
+                </label>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="action-button"
+                id="saveProfileButton"
+            >
+                Continue →
+            </button>
+
         </section>
 
-        <section class="summary">
+        <section id="summary" class="summary financial-summary">
 
             <div class="summary-card">
                 <span>💰</span>
@@ -40,13 +129,11 @@
                 <p id="dashboardExpenses">₦0</p>
             </div>
 
-
             <div class="summary-card">
                 <span>💵</span>
                 <h3>Income</h3>
                 <p id="dashboardIncome">₦0</p>
             </div>
-
 
             <div class="summary-card">
                 <span>📊</span>
@@ -54,19 +141,71 @@
                 <p id="dashboardProfit">₦0</p>
             </div>
 
-            <div class="summary-card">
+            <div class="summary-card last-visit-card" id="dashboardLastVisit">
                 <span>📍</span>
-                <h3>Last Visit</h3>
-                <p>Not recorded</p>
+                <div>
+                    <h3>Last Visit</h3>
+                    <p id="dashboardLastVisitText">Not recorded</p>
+                </div>
             </div>
 
         </section>
 
-           
+        <section class="home-at-a-glance" id="homeAtAGlance">
+            <div class="home-section-heading">
+                <div>
+                    <span class="home-eyebrow">FARM AT A GLANCE</span>
+                    <h2>Today on your farm</h2>
+                </div>
+                <span class="home-date" id="homeTodayDate"></span>
+            </div>
+            <div class="home-glance-grid">
+                <button type="button" class="home-glance-card" id="homeCropsGlance">
+                    <span>🌱</span><strong id="homeCropCount">0</strong><small>Crops</small>
+                </button>
+                <button type="button" class="home-glance-card" id="homeAnimalsGlance">
+                    <span>🐄</span><strong id="homeAnimalCount">0</strong><small>Animal Groups</small>
+                </button>
+                <button type="button" class="home-glance-card" id="homeRecordsGlance">
+                    <span>📝</span><strong id="homeTodayRecordCount">0</strong><small>Today's Records</small>
+                </button>
+            </div>
+        </section>
+
+        <section class="home-search-card" id="homeSearchCard">
+            <div class="home-section-heading">
+                <div>
+                    <span class="home-eyebrow">FIND ANYTHING</span>
+                    <h2>Search your farm</h2>
+                </div>
+                <span class="home-search-icon">⌕</span>
+            </div>
+            <div class="home-search-bar">
+                <span aria-hidden="true">🔎</span>
+                <input type="search" id="homeSearchInput" placeholder="Search crops, animals, sales, expenses..." autocomplete="off">
+                <button type="button" id="homeSearchClear" aria-label="Clear search">×</button>
+            </div>
+            <div id="homeSearchResults" class="home-search-results">
+                <p class="home-search-hint">Search your farm records without leaving Home.</p>
+            </div>
+        </section>
+
+        <section class="home-reminders-card" id="homeRemindersCard">
+            <div class="home-section-heading">
+                <div>
+                    <span class="home-eyebrow">UP NEXT</span>
+                    <h2>Set reminders</h2>
+                </div>
+                <button type="button" class="home-section-link" id="homeViewRemindersButton">View all →</button>
+            </div>
+            <div id="homeReminderList" class="home-reminder-list">
+                <p class="home-search-hint">Loading reminders...</p>
+            </div>
+        </section>
 
         <section class="quick-actions">
 
-            <h2>Quick Actions</h2>
+            <div class="home-section-heading"><div><span class="home-eyebrow">QUICK ACTIONS</span><h2>What would you like to do?</h2></div></div>
 
             <button class="action-button" id="recordVisitButton">
               📍 Record Farm Visit
@@ -76,34 +215,68 @@
                  📝 Record Today's Activities
             </button>
 
+            <button type="button" class="action-button" id="dailyHistoryHomeButton">
+                 📜 View Daily Records History
+            </button>
+
         </section>
 
-        <section class="visit-form" id="visitForm">
+        <section class="visit-form" id="visitForm" style="display:none;">
 
             <h2>📍 Record Farm Visit</h2>
+            <button type="button" class="small-button" id="visitBackButton">← Back to More</button>
 
-            <label for="visitDate">Date</label>
-            <input type="date" id="visitDate">
+            <div class="form-card">
+                <label for="visitDate">Date</label>
+                <input type="date" id="visitDate">
 
-            <label for="visitTime">Time</label>
-            <input type="time" id="visitTime">
+                <label for="visitTime">Time</label>
+                <input type="time" id="visitTime">
 
-            <label for="visitNotes">What happened today?</label>
-            <textarea
-                id="visitNotes"
-                placeholder="Example: Checked vegetables and fed the birds."
-                rows="4">
-            </textarea>
+                <label for="visitLocation">📍 Location</label>
+                <input type="text" id="visitLocation" placeholder="e.g. Main Farm / Plot B">
 
-            <button class="action-button" id="saveVisitButton">
-                💾 Save Farm Visit
-            </button>
+                <label for="visitWeather">🌦️ Weather</label>
+                <input type="text" id="visitWeather" placeholder="e.g. Sunny, light rain, cloudy">
+
+                <label for="visitCropObservations">🌱 Crop observations</label>
+                <textarea id="visitCropObservations" rows="3" placeholder="What did you observe in the crops?"></textarea>
+
+                <label for="visitAnimalObservations">🐔 Animal observations</label>
+                <textarea id="visitAnimalObservations" rows="3" placeholder="Animal health, feeding, behaviour, numbers..."></textarea>
+
+                <label for="visitProblems">⚠️ Problems discovered</label>
+                <textarea id="visitProblems" rows="3" placeholder="Pests, disease, broken equipment, shortages..."></textarea>
+
+                <label for="visitNotes">📝 Notes</label>
+                <textarea id="visitNotes" rows="4" placeholder="Anything else about this visit..."></textarea>
+
+                <label for="visitExpenseAmount">💰 Expenses made (optional)</label>
+                <input type="number" id="visitExpenseAmount" min="0" step="0.01" placeholder="e.g. 25000">
+
+                <label for="visitExpenseDetails">Expense details</label>
+                <input type="text" id="visitExpenseDetails" placeholder="e.g. Fertilizer purchased">
+
+                <label for="visitPhotoInput">📷 Visit photos</label>
+                <input type="file" id="visitPhotoInput" accept="image/*" multiple>
+                <p class="form-help">Add photos of crop disease, animals, farm progress or other findings.</p>
+
+                <button class="action-button" id="saveVisitButton">💾 Save Farm Visit</button>
+            </div>
+
+            <div class="visit-history-card">
+                <h3>📖 Farm Visit Diary</h3>
+                <div id="visitHistory"><p class="empty-message">No farm visits recorded yet.</p></div>
+            </div>
 
         </section>
 
         <section class="daily-form" id="dailyForm">
 
-            <h2>📝 Today's Farm Record</h2>
+            <div class="section-header daily-form-header">
+                <h2>📝 Today's Farm Record</h2>
+                <button type="button" class="small-button" id="dailyFormBackButton">← Back to More</button>
+            </div>
 
             <label for="dailyDate">Date</label>
             <input type="date" id="dailyDate">
@@ -228,15 +401,6 @@
 
        </section>
 
-       <button
-            type="button"
-            class="small-button"
-            id="viewDailyHistoryButton">
-
-            📜 View Daily Records History
-
-        </button>
-
        <section
             class="daily-history-section"
             id="dailyHistorySection"
@@ -268,9 +432,22 @@
 
         </section>
 
-       <section class="crop-form" id="cropForm">
+    <section class="workspace-intro crop-workspace-intro" id="cropWorkspaceIntro">
+        <h2>🌱 Crop Management</h2>
+        <p>Manage your crops, planting records, activities, harvests and crop history in one place.</p>
+        <div class="workspace-actions">
+            <button type="button" class="small-button" id="cropWorkspaceAddButton">＋ Add Crop</button>
+            <button type="button" class="small-button" id="cropWorkspaceListButton">🌱 My Crops</button>
+            <button type="button" class="small-button" id="cropWorkspaceActivitiesButton">📜 Crop Activities</button>
+        </div>
+    </section>
 
-        <h2>🌱 Crop Record</h2>
+    <section class="crop-form" id="cropForm">
+
+        <div class="form-card-heading crop-form-heading">
+            <div><span class="form-icon">🌱</span><h2>Crop Record</h2></div>
+            <button type="button" class="icon-close-button" id="closeCropFormButton" aria-label="Close crop form">✕</button>
+        </div>
 
         <label for="cropRecordName">Crop</label>
 
@@ -466,6 +643,10 @@
 
             <p id="activityCropName"></p>
 
+            <label for="activityCropSelect">Crop</label>
+            <select id="activityCropSelect">
+                <option value="">Select crop</option>
+            </select>
 
             <label for="activityDate">
                 Date
@@ -584,7 +765,63 @@
 
         </section>
 
+        <section class="crop-activity-overview" id="cropActivityOverview">
+            <div class="section-header">
+                <h2>📜 Recent Crop Activities</h2>
+                <button type="button" class="small-button" id="cropOverviewAddActivityButton">＋ Add Activity</button>
+            </div>
+            <div id="cropActivityOverviewList">
+                <p class="empty-message">No crop activities recorded yet.</p>
+            </div>
+        </section>
+
       
+
+        <!-- FARM PROFILE EDITOR -->
+        <section class="profile-editor-card" id="profileEditorCard" style="display: none;">
+            <div class="profile-editor-header">
+                <div>
+                    <span class="profile-icon">👤</span>
+                    <div>
+                        <h2>Farm Profile</h2>
+                        <p>Update your name, farm name, and welcome style.</p>
+                    </div>
+                </div>
+                <button type="button" class="small-button" id="closeProfileEditorButton">Close</button>
+            </div>
+
+            <label for="editUserName">Your name</label>
+            <input type="text" id="editUserName" maxlength="50" placeholder="Enter your name">
+
+            <label for="editFarmName">Farm name</label>
+            <input type="text" id="editFarmName" maxlength="80" placeholder="Enter your farm name">
+
+            <label>How should FarmKeeper welcome you?</label>
+            <div class="welcome-options profile-welcome-options">
+                <label><input type="radio" name="editWelcomePreference" value="name"> My name</label>
+                <label><input type="radio" name="editWelcomePreference" value="farm"> My farm</label>
+                <label><input type="radio" name="editWelcomePreference" value="both"> Both</label>
+            </div>
+
+            <button type="button" class="action-button" id="updateProfileButton">💾 Save Profile Changes</button>
+        </section>
+
+        <!-- MORE MENU -->
+        <section class="more-menu" id="moreMenu" style="display: none;">
+            <div class="more-menu-header">
+                <h2>More</h2>
+                <button type="button" class="small-button" id="closeMoreButton">Close</button>
+            </div>
+            <div class="more-grid">
+                <button type="button" class="more-item" id="openProfileEditorButton">👤<span>Farm Profile</span></button>
+                <button type="button" class="more-item" id="moreDailyButton">📝<span>Daily Records</span></button>
+                <button type="button" class="more-item" id="moreVisitButton">📍<span>Farm Visits</span></button>
+                <button type="button" class="more-item" id="moreReportsButton">📊<span>Reports</span></button>
+                <button type="button" class="more-item" id="moreRemindersButton">🔔<span>Reminders</span></button>
+                <button type="button" class="more-item" id="moreSearchButton">🔎<span>Farm Search</span></button>
+                <button type="button" class="more-item" id="morePhotosButton">📷<span>Farm Photos</span></button>
+            </div>
+        </section>
 
         <section class="modules">
 
@@ -600,7 +837,7 @@
                 <button class="module-button" id="eggProductionButton">
                      
                     🐔
-                    <span>Egg Production</span>
+                    <span>Animals</span>
                     
                 </button>
 
@@ -637,6 +874,75 @@
 
         </section>
 
+    <section class="animal-workspace" id="animalWorkspace" style="display:none;">
+        <div class="workspace-intro animal-workspace-intro">
+            <div class="workspace-eyebrow">ANIMAL WORKSPACE</div>
+            <h2>🐄 Animal Management</h2>
+            <p>Manage livestock, poultry groups, production and animal-related finances in one place.</p>
+        </div>
+
+        <div class="animal-action-grid">
+            <button type="button" class="animal-action-card" id="addAnimalButton">
+                <span>➕</span><strong>Add Animal</strong><small>Register a livestock or poultry group</small>
+            </button>
+            <button type="button" class="animal-action-card" id="animalEggButton">
+                <span>🥚</span><strong>Egg Production</strong><small>Record daily poultry production</small>
+            </button>
+            <button type="button" class="animal-action-card" id="animalFinanceButton">
+                <span>💰</span><strong>Animal Finance</strong><small>View costs, sales and profit</small>
+            </button>
+            <button type="button" class="animal-action-card" id="animalListButton">
+                <span>🐾</span><strong>My Animals</strong><small>View your animal groups</small>
+            </button>
+        </div>
+
+        <div class="form-card animal-form-card" id="animalForm" style="display:none;">
+            <div class="form-card-heading">
+                <div><span class="form-icon">🐄</span><h3 id="animalFormTitle">Add Animal Group</h3></div>
+                <button type="button" class="icon-close-button" id="closeAnimalFormButton" aria-label="Close">✕</button>
+            </div>
+            <p class="form-help">Add a group once, then link its expenses and sales from Finance.</p>
+
+            <div class="animal-form-grid">
+                <div class="input-group">
+                    <label for="animalType">Animal Type</label>
+                    <select id="animalType"><option value="">Select animal type</option><option>Cattle</option><option>Goats</option><option>Sheep</option><option>Pigs</option><option>Poultry</option><option>Rabbits</option><option>Fish</option><option>Other</option></select>
+                </div>
+                <div class="input-group">
+                    <label for="animalBreed">Breed / Variety</label>
+                    <input id="animalBreed" type="text" placeholder="e.g. West African Dwarf">
+                </div>
+                <div class="input-group">
+                    <label for="animalCount">Number of Animals</label>
+                    <input id="animalCount" type="number" min="1" placeholder="e.g. 50">
+                </div>
+                <div class="input-group">
+                    <label for="animalDate">Date Acquired</label>
+                    <input id="animalDate" type="date">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="animalNotes">Notes <span>(optional)</span></label>
+                <textarea id="animalNotes" rows="3" placeholder="Health, purpose, location or other notes"></textarea>
+            </div>
+            <div class="animal-form-actions"><button type="button" class="action-button" id="saveAnimalButton">💾 Save Animal Group</button><button type="button" class="small-button" id="cancelAnimalEditButton" style="display:none;">Cancel Edit</button></div>
+        </div>
+
+        <div class="animal-list-card" id="animalListCard" style="display:none;">
+            <div class="section-title-row">
+                <div><span>🐾</span><div><h3>My Animals</h3><p>Your livestock and poultry groups</p></div></div>
+            </div>
+            <div id="animalList"><p class="empty-message">No animal groups recorded yet.</p></div>
+        </div>
+
+        <div class="animal-summary-card" id="animalFinanceSummary" style="display:none;">
+            <div class="section-title-row">
+                <div><span>💰</span><div><h3>Animal Finance</h3><p>Linked expenses, labour and sales</p></div></div>
+            </div>
+            <div id="animalFinanceSummaryContent"><p class="empty-message">Add animals and link Finance records to see profitability.</p></div>
+        </div>
+    </section>
+
     <section
             class="poultry-section"
             id="poultrySection"
@@ -649,7 +955,7 @@
                 class="small-button"
                 id="backFromPoultryButton">
 
-                ← Back to Dashboard
+                ← Back to Animals
 
             </button>
             <div id="flockSetupArea" style="display: none;">
@@ -843,6 +1149,32 @@
             </div>
         </section>
        
+        <section class="finance-workspace" id="financeWorkspace" style="display:none;">
+            <div class="workspace-intro finance-workspace-intro">
+                <div class="workspace-eyebrow">FINANCE WORKSPACE</div>
+                <h2>💰 Farm Finance</h2>
+                <p>Track expenses, labour, sales and profit in one place.</p>
+            </div>
+
+            <div class="finance-summary-grid">
+                <div class="finance-summary-card"><span>💸</span><strong id="financeExpenseTotal">₦0</strong><small>Expenses</small></div>
+                <div class="finance-summary-card"><span>💵</span><strong id="financeSalesTotal">₦0</strong><small>Sales</small></div>
+                <div class="finance-summary-card"><span>📈</span><strong id="financeProfitTotal">₦0</strong><small>Profit</small></div>
+            </div>
+
+            <div class="finance-action-grid">
+                <button type="button" class="finance-action-card" id="financeExpensesButton"><span>💸</span><strong>Expenses</strong><small>Record and view farm costs</small></button>
+                <button type="button" class="finance-action-card" id="financeLabourButton"><span>👷</span><strong>Labour</strong><small>Track workers and labour costs</small></button>
+                <button type="button" class="finance-action-card" id="financeSalesButton"><span>💵</span><strong>Sales &amp; Income</strong><small>Record farm products and livestock sales</small></button>
+                <button type="button" class="finance-action-card" id="financeRecentButton"><span>📋</span><strong>Recent Transactions</strong><small>See your latest financial activity</small></button>
+            </div>
+
+            <div class="finance-recent-card" id="financeRecentCard">
+                <div class="section-heading-row"><h3>📋 Recent Transactions</h3><button type="button" class="small-button" id="financeRefreshButton">↻ Refresh</button></div>
+                <div id="financeRecentList"><p class="empty-message">No financial records yet.</p></div>
+            </div>
+        </section>
+
         <section
             class="expense-section"
             id="farmExpenseSection"
@@ -855,7 +1187,7 @@
                 class="small-button"
                 id="farmExpenseButton">
 
-                ← Back to Dashboard
+                ← Back to Finance
 
             </button>
 
@@ -872,6 +1204,9 @@
                     type="date"
                     id="farmExpenseDate">
 
+
+                <label for="farmExpenseCrop">Crop / Animal (optional)</label>
+                <select id="farmExpenseCrop"><option value="">General farm expense</option></select>
 
                 <label for="farmExpenseCategory">
                     Category
@@ -998,7 +1333,7 @@
                 class="small-button"
                 id="farmLabourBackButton">
 
-                ← Back to Dashboard
+                ← Back to Finance
 
             </button>
 
@@ -1009,6 +1344,9 @@
 
                 <h3>➕ Record Labour</h3>
 
+
+                <label for="farmLabourCrop">Crop / Animal (optional)</label>
+                <select id="farmLabourCrop"><option value="">General farm labour</option></select>
 
                 <label for="farmLabourDate">
                     Date
@@ -1134,7 +1472,7 @@
                 class="small-button"
                 id="farmSalesBackButton">
 
-                ← Back to Dashboard
+                ← Back to Finance
 
             </button>
 
@@ -1145,6 +1483,9 @@
 
                 <h3>➕ Record Sale</h3>
 
+
+                <label for="farmSalesCrop">Crop / Animal (optional)</label>
+                <select id="farmSalesCrop"><option value="">General farm sale</option></select>
 
                 <label for="farmSalesDate">
                     Sale Date
@@ -1165,17 +1506,34 @@
                         Select product
                     </option>
 
-                    <option value="Eggs">
-                        🥚 Eggs
-                    </option>
+                    <optgroup label="🐔 Poultry & Eggs">
+                        <option value="Eggs">🥚 Eggs</option>
+                        <option value="Live Poultry">🐔 Live Poultry / Birds</option>
+                        <option value="Chicken">🍗 Chicken</option>
+                        <option value="Chicks">🐣 Chicks</option>
+                    </optgroup>
 
-                    <option value="Vegetables">
-                        🥬 Vegetables
-                    </option>
+                    <optgroup label="🐄 Livestock">
+                        <option value="Cattle">🐄 Cattle</option>
+                        <option value="Goats">🐐 Goats</option>
+                        <option value="Sheep">🐑 Sheep</option>
+                        <option value="Pigs">🐖 Pigs</option>
+                        <option value="Rabbits">🐇 Rabbits</option>
+                        <option value="Milk">🥛 Milk</option>
+                        <option value="Meat">🥩 Meat</option>
+                        <option value="Hides & Skin">🦬 Hides & Skin</option>
+                    </optgroup>
 
-                    <option value="Other">
-                        📦 Other
-                    </option>
+                    <optgroup label="🌱 Crops & Farm Produce">
+                        <option value="Vegetables">🥬 Vegetables</option>
+                        <option value="Fruits">🍊 Fruits</option>
+                        <option value="Grains">🌾 Grains</option>
+                        <option value="Tubers">🥔 Tubers</option>
+                        <option value="Fish">🐟 Fish</option>
+                        <option value="Manure">♻️ Manure</option>
+                    </optgroup>
+
+                    <option value="Other">📦 Other</option>
 
                 </select>
 
@@ -1201,25 +1559,24 @@
                         Select unit
                     </option>
 
-                    <option value="Crates">
-                        Crates
-                    </option>
-
-                    <option value="Kg">
-                        Kg
-                    </option>
-
-                    <option value="Baskets">
-                        Baskets
-                    </option>
-
-                    <option value="Pieces">
-                        Pieces
-                    </option>
-
-                    <option value="Other">
-                        Other
-                    </option>
+                    <option value="Pieces">Pieces</option>
+                    <option value="Heads">Heads</option>
+                    <option value="Birds">Birds</option>
+                    <option value="Animals">Animals</option>
+                    <option value="Dozen">Dozen</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Grams">Grams</option>
+                    <option value="Tonnes">Tonnes</option>
+                    <option value="Litres">Litres</option>
+                    <option value="Crates">Crates</option>
+                    <option value="Trays">Trays</option>
+                    <option value="Baskets">Baskets</option>
+                    <option value="Bags">Bags</option>
+                    <option value="Sacks">Sacks</option>
+                    <option value="Bunches">Bunches</option>
+                    <option value="Tubers">Tubers</option>
+                    <option value="Buckets">Buckets</option>
+                    <option value="Other">Other</option>
 
                 </select>
 
@@ -1285,6 +1642,32 @@
 
         </section>
 
+        <section class="phase2-section" id="farmSearchSection" style="display:none;">
+            <h2>🔎 Farm Search</h2>
+            <button type="button" class="small-button" id="farmSearchBackButton">← Back to More</button>
+            <div class="form-card">
+                <label for="farmSearchInput">Search your farm records</label>
+                <input type="search" id="farmSearchInput" placeholder="Search crops, animals, expenses, sales...">
+                <p class="form-help">Search across your saved crops, animals, finance records, visits and daily activities.</p>
+            </div>
+            <div id="farmSearchResults"><p class="empty-message">Type something to search your farm records.</p></div>
+        </section>
+
+        <section class="phase2-section" id="farmPhotosSection" style="display:none;">
+            <h2>📷 Farm Photos</h2>
+            <button type="button" class="small-button" id="farmPhotosBackButton">← Back to More</button>
+            <div class="form-card">
+                <label for="farmPhotoTarget">Attach photo to</label>
+                <select id="farmPhotoTarget"><option value="general">🌾 General Farm</option></select>
+                <label for="farmPhotoInput">Choose a photo</label>
+                <input type="file" id="farmPhotoInput" accept="image/*">
+                <label for="farmPhotoCaption">Caption</label>
+                <input type="text" id="farmPhotoCaption" maxlength="120" placeholder="e.g. Tomato field after weeding">
+                <button type="button" class="primary-button" id="saveFarmPhotoButton">📷 Save Photo</button>
+            </div>
+            <div id="farmPhotosGrid" class="farm-photos-grid"><p class="empty-message">No farm photos yet.</p></div>
+        </section>
+
         <section
             class="reports-section"
             id="reportsSection"
@@ -1297,7 +1680,7 @@
                 class="small-button"
                 id="reportsBackButton">
 
-                ← Back to Dashboard
+                ← Back to More
 
             </button>
 
@@ -1358,84 +1741,70 @@
             </div>
 
         </section>
-        <section
-            class="reminders-section"
-            id="remindersSection"
-            style="display: none;">
-
+        <section class="reminders-section" id="remindersSection" style="display:none;">
             <h2>🔔 Farm Reminders</h2>
-
-            <button
-                type="button"
-                class="small-button"
-                id="remindersBackButton">
-
-                ← Back to Dashboard
-
-            </button>
-
+            <button type="button" class="small-button" id="remindersBackButton">← Back to More</button>
 
             <div class="reminder-card">
+                <h3>➕ Add Farm Reminder</h3>
+                <label for="reminderTitle">Reminder</label>
+                <input type="text" id="reminderTitle" maxlength="160" placeholder="e.g. Apply fertilizer to Plot B">
 
-                <h3>📝 Daily Record Reminder</h3>
+                <label for="reminderDueDate">Due date</label>
+                <input type="date" id="reminderDueDate">
 
-                <p>
-                    Set a time to remind yourself to record
-                    today's farm activities.
-                </p>
+                <label for="reminderDueTime">Time (optional)</label>
+                <input type="time" id="reminderDueTime">
 
+                <label for="reminderRepeat">Repeat</label>
+                <select id="reminderRepeat">
+                    <option value="none">Does not repeat</option>
+                    <option value="daily">Every day</option>
+                    <option value="weekly">Every week</option>
+                    <option value="monthly">Every month</option>
+                </select>
 
-                <label for="dailyReminderTime">
-                    Reminder Time
-                </label>
+                <label for="reminderTarget">Related to (optional)</label>
+                <select id="reminderTarget"><option value="">General farm</option></select>
 
-                <input
-                    type="time"
-                    id="dailyReminderTime">
+                <label for="reminderNotes">Notes</label>
+                <textarea id="reminderNotes" rows="3" placeholder="Extra instructions..."></textarea>
 
-
-                <label class="checkbox-label">
-
-                    <input
-                        type="checkbox"
-                        id="dailyReminderEnabled">
-
-                    Enable Daily Reminder
-
-                </label>
-
-
-                <button
-                    type="button"
-                    class="primary-button"
-                    id="saveReminderButton">
-
-                    💾 Save Reminder
-
-                </button>
-
+                <label class="checkbox-label"><input type="checkbox" id="reminderNotify" checked> Enable device notification when due</label>
+                <button type="button" class="small-button" id="enableReminderNotifications">🔔 Enable/Test Notifications</button>
+                <p id="reminderNotificationStatus" class="muted-text" aria-live="polite"></p>
+                <button type="button" class="primary-button" id="saveReminderButton">💾 Save Reminder</button>
             </div>
 
-
-            <div
-                class="reminder-status-card"
-                id="reminderStatus">
-
-                <h3>🔔 Reminder Status</h3>
-
-                <p>
-                    Daily reminder is currently disabled.
-                </p>
-
-            </div>
-
+            <div class="reminder-status-card" id="reminderStatus"></div>
+            <div class="reminder-list" id="reminderList"><p class="empty-message">No reminders yet.</p></div>
         </section>
     </main>
 
 
 
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <!-- Navigation starts neutral on the full-app landing page. It becomes active after a workspace is selected. -->
+    <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
+        <button type="button" class="bottom-nav-item" data-nav="home">
+            <span>🏠</span><small>Home</small>
+        </button>
+        <button type="button" class="bottom-nav-item" data-nav="crops">
+            <span>🌱</span><small>Crops</small>
+        </button>
+        <button type="button" class="bottom-nav-item" data-nav="animals">
+            <span>🐔</span><small>Animals</small>
+        </button>
+        <button type="button" class="bottom-nav-item" data-nav="finance">
+            <span>💰</span><small>Finance</small>
+        </button>
+        <button type="button" class="bottom-nav-item" data-nav="more">
+            <span>☰</span><small>More</small>
+        </button>
+    </nav>
+
     <footer>
-        <p>FarmKeeper v1.0</p>
+        <p>FarmKeeper v1.5</p>
     </footer>
 
 
