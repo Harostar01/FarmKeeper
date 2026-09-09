@@ -3036,3 +3036,85 @@ body {
 .report-total strong.financial-positive {
     color: #2e7d32 !important;
 }
+
+/* =========================================
+   BACKUP & RESTORE
+   ========================================= */
+.backup-restore-card {
+    margin: 18px auto;
+    width: min(92%, 760px);
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+.backup-restore-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.backup-restore-header > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.backup-restore-header h2 {
+    margin: 0;
+}
+
+.backup-restore-header p {
+    margin: 4px 0 0;
+    font-size: .9rem;
+    opacity: .75;
+}
+
+.backup-restore-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.backup-restore-info {
+    background: #f6f8f6;
+    border-radius: 14px;
+    padding: 14px;
+    line-height: 1.55;
+}
+
+.backup-restore-info ol {
+    margin: 8px 0 10px 20px;
+    padding: 0;
+}
+
+.backup-warning {
+    margin: 10px 0 0;
+    font-size: .88rem;
+    font-weight: 600;
+}
+
+.backup-status {
+    margin: 10px 0 0;
+    font-weight: 600;
+}
+
+@media (max-width: 520px) {
+    .backup-restore-card {
+        width: calc(100% - 24px);
+        padding: 15px;
+        border-radius: 18px;
+    }
+
+    .backup-restore-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .backup-restore-header {
+        align-items: flex-start;
+    }
+}

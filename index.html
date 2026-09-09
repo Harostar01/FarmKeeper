@@ -820,6 +820,38 @@
                 <button type="button" class="more-item" id="moreRemindersButton">🔔<span>Reminders</span></button>
                 <button type="button" class="more-item" id="moreSearchButton">🔎<span>Farm Search</span></button>
                 <button type="button" class="more-item" id="morePhotosButton">📷<span>Farm Photos</span></button>
+                <button type="button" class="more-item" id="moreBackupButton">💾<span>Backup &amp; Restore</span></button>
+            </div>
+        </section>
+
+        <!-- BACKUP & RESTORE -->
+        <section class="backup-restore-card" id="backupRestoreSection" style="display: none;">
+            <div class="backup-restore-header">
+                <div>
+                    <span class="profile-icon">💾</span>
+                    <div>
+                        <h2>Backup &amp; Restore</h2>
+                        <p>Move your FarmKeeper records between devices or website versions.</p>
+                    </div>
+                </div>
+                <button type="button" class="small-button" id="backupRestoreBackButton">Back</button>
+            </div>
+
+            <div class="backup-restore-actions">
+                <button type="button" class="action-button" id="exportBackupButton">⬇️ Export Backup</button>
+                <button type="button" class="action-button secondary" id="importBackupButton">⬆️ Import Backup</button>
+                <input type="file" id="backupFileInput" accept="application/json,.json" style="display:none;">
+            </div>
+
+            <div class="backup-restore-info">
+                <strong>How it works</strong>
+                <ol>
+                    <li>On your old FarmKeeper site, choose <b>Export Backup</b>.</li>
+                    <li>On this new site, choose <b>Import Backup</b> and select that backup file.</li>
+                    <li>Your farm records will be restored on this site.</li>
+                </ol>
+                <p class="backup-warning">⚠️ Importing a backup replaces the records currently stored on this site. Export this site's data first if you want to keep it.</p>
+                <p id="backupStatus" class="backup-status" aria-live="polite"></p>
             </div>
         </section>
 

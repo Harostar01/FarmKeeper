@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await setupUserProfile();
 
         setupProfileEditor();
+        setupBackupRestore();
         setupBottomNavigation();
 setupHomeSearch();
         setupPhase2Features();
@@ -6876,8 +6877,26 @@ async function openProfileEditor() {
     if (!card) return;
 
     try {
-        const profile = await getSettings();
-        if (!profile) return;
+        // The Vercel deployment has a different IndexedDB origin from the
+        // old GitHub Pages site, so a profile may not exist yet. Do not
+        // silently return in that case: the Farm Profile editor should
+        // still open and let the user create/save a profile.
+        let profile = await getSettings();
+
+        if (!profile) {
+            try {
+                const backup = localStorage.getItem("farmKeeperProfile");
+                profile = backup ? JSON.parse(backup) : null;
+            } catch (backupError) {
+                console.warn("Could not read profile backup:", backupError);
+            }
+        }
+
+        profile = profile || {
+            userName: "",
+            farmName: "",
+            welcomePreference: "name"
+        };
 
         document.getElementById("editUserName").value = profile.userName || "";
         document.getElementById("editFarmName").value = profile.farmName || "";
@@ -7355,6 +7374,7 @@ function getAllNavigationPanels() {
         "farmSearchSection",
         "farmPhotosSection",
         "profileEditorCard",
+        "backupRestoreSection",
         "moreMenu",
         "modules"
     ];
@@ -7552,6 +7572,215 @@ function closeNavigationPanels() {
    PHASE 2 — USEFUL FARM TOOLS
    Reminders, visits, reports, search and photos.
    ========================================= */
+
+/* =========================================
+   BACKUP & RESTORE
+   Exports/imports every FarmKeeper IndexedDB store.
+   This is intentionally local: no farm data is uploaded anywhere.
+   ========================================= */
+const FARMKEEPER_BACKUP_VERSION = 1;
+const FARMKEEPER_BACKUP_STORES = [
+    "farm",
+    "dailyRecords",
+    "cropActivities",
+    "crops",
+    "eggRecords",
+    "flock",
+    "animals",
+    "expenses",
+    "labour",
+    "sales",
+    "visits",
+    "reminders",
+    "photos",
+    "settings"
+];
+
+function setBackupStatus(message, isError = false) {
+    const status = document.getElementById("backupStatus");
+    if (!status) return;
+    status.textContent = message || "";
+    status.style.color = isError ? "#c62828" : "";
+}
+
+function formatBackupDate(date = new Date()) {
+    return date.toISOString().replace(/[:.]/g, "-").replace(/Z$/, "");
+}
+
+function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function createFarmKeeperBackup() {
+    const stores = {};
+
+    for (const storeName of FARMKEEPER_BACKUP_STORES) {
+        stores[storeName] = await getAllRecords(storeName);
+    }
+
+    let profileBackup = null;
+    try {
+        const raw = localStorage.getItem("farmKeeperProfile");
+        profileBackup = raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.warn("Could not read profile backup for export:", error);
+    }
+
+    return {
+        app: "FarmKeeper",
+        backupVersion: FARMKEEPER_BACKUP_VERSION,
+        databaseName: typeof DB_NAME !== "undefined" ? DB_NAME : "FarmKeeperDB",
+        databaseVersion: typeof DB_VERSION !== "undefined" ? DB_VERSION : 10,
+        createdAt: new Date().toISOString(),
+        stores,
+        localStorage: {
+            farmKeeperProfile: profileBackup
+        }
+    };
+}
+
+async function exportFarmKeeperBackup() {
+    const button = document.getElementById("exportBackupButton");
+    if (button) button.disabled = true;
+    setBackupStatus("Preparing your backup…");
+
+    try {
+        const backup = await createFarmKeeperBackup();
+        const json = JSON.stringify(backup, null, 2);
+        const totalRecords = FARMKEEPER_BACKUP_STORES.reduce(
+            (total, storeName) => total + (backup.stores[storeName]?.length || 0),
+            0
+        );
+
+        downloadTextFile(
+            `FarmKeeper-backup-${formatBackupDate()}.json`,
+            json
+        );
+
+        setBackupStatus(`✅ Backup exported successfully — ${totalRecords} records included.`);
+    } catch (error) {
+        console.error("FarmKeeper backup export failed:", error);
+        setBackupStatus("❌ Backup could not be exported. Please try again.", true);
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
+function isValidFarmKeeperBackup(backup) {
+    if (!backup || typeof backup !== "object") return false;
+    if (backup.app !== "FarmKeeper") return false;
+    if (!backup.stores || typeof backup.stores !== "object") return false;
+    return FARMKEEPER_BACKUP_STORES.every(storeName =>
+        Array.isArray(backup.stores[storeName])
+    );
+}
+
+function restoreFarmKeeperBackup(backup) {
+    return new Promise((resolve, reject) => {
+        let transaction;
+
+        try {
+            transaction = db.transaction(FARMKEEPER_BACKUP_STORES, "readwrite");
+        } catch (error) {
+            reject(error);
+            return;
+        }
+
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error || new Error("Restore transaction failed."));
+        transaction.onabort = () => reject(transaction.error || new Error("Restore transaction was aborted."));
+
+        FARMKEEPER_BACKUP_STORES.forEach(storeName => {
+            const store = transaction.objectStore(storeName);
+            store.clear();
+            backup.stores[storeName].forEach(record => {
+                store.put(record);
+            });
+        });
+    });
+}
+
+async function importFarmKeeperBackup(file) {
+    if (!file) return;
+
+    setBackupStatus("Reading backup file…");
+
+    try {
+        const text = await file.text();
+        let backup;
+
+        try {
+            backup = JSON.parse(text);
+        } catch (error) {
+            throw new Error("The selected file is not valid JSON.");
+        }
+
+        if (!isValidFarmKeeperBackup(backup)) {
+            throw new Error("This does not appear to be a valid FarmKeeper backup.");
+        }
+
+        const totalRecords = FARMKEEPER_BACKUP_STORES.reduce(
+            (total, storeName) => total + backup.stores[storeName].length,
+            0
+        );
+
+        const confirmed = confirm(
+            `Restore this FarmKeeper backup?\n\n` +
+            `${totalRecords} records will be restored.\n\n` +
+            `This replaces the records currently stored on THIS website/device.\n\n` +
+            `Your old backup file will not be changed.`
+        );
+
+        if (!confirmed) {
+            setBackupStatus("Restore cancelled. Your current data was not changed.");
+            return;
+        }
+
+        await restoreFarmKeeperBackup(backup);
+
+        // Restore the profile backup as well, when present.
+        const profile = backup.localStorage?.farmKeeperProfile;
+        if (profile) {
+            localStorage.setItem("farmKeeperProfile", JSON.stringify(profile));
+            farmKeeperProfile = profile;
+        }
+
+        setBackupStatus(`✅ Restore complete — ${totalRecords} records imported.`);
+        alert("✅ FarmKeeper backup restored successfully. The page will now refresh to load your records.");
+        window.location.reload();
+    } catch (error) {
+        console.error("FarmKeeper backup import failed:", error);
+        setBackupStatus(`❌ ${error.message || "Backup could not be restored."}`, true);
+        alert(`❌ ${error.message || "Backup could not be restored."}`);
+    }
+}
+
+function setupBackupRestore() {
+    const openButton = document.getElementById("moreBackupButton");
+    const backButton = document.getElementById("backupRestoreBackButton");
+    const exportButton = document.getElementById("exportBackupButton");
+    const importButton = document.getElementById("importBackupButton");
+    const fileInput = document.getElementById("backupFileInput");
+
+    openButton?.addEventListener("click", () => showMorePanel("backup"));
+    backButton?.addEventListener("click", () => showMorePanel("menu"));
+    exportButton?.addEventListener("click", exportFarmKeeperBackup);
+    importButton?.addEventListener("click", () => fileInput?.click());
+    fileInput?.addEventListener("change", async event => {
+        const file = event.target.files?.[0];
+        await importFarmKeeperBackup(file);
+        event.target.value = "";
+    });
+}
+
 async function setupPhase2Features() {
     const visitBack = document.getElementById("visitBackButton");
     visitBack?.addEventListener("click", () => showMorePanel("menu"));
@@ -7573,6 +7802,8 @@ async function setupPhase2Features() {
     document.getElementById("farmSearchInput")?.addEventListener("input", runFarmSearch);
     document.getElementById("saveFarmPhotoButton")?.addEventListener("click", saveFarmPhoto);
 
+    // Backup & Restore lives under More and is intentionally initialized separately.
+
     // Make the More menu the true parent of Phase 2 screens.
     const oldShowMorePanel = window.showMorePanel;
 }
@@ -7584,7 +7815,8 @@ function showMorePanel(panel, mode = null) {
 
     const targets = {
         visit: ["visitForm"], reports: ["reportsSection"], reminders: ["remindersSection"],
-        profile: ["profileEditorCard"], search: ["farmSearchSection"], photos: ["farmPhotosSection"]
+        profile: ["profileEditorCard"], search: ["farmSearchSection"], photos: ["farmPhotosSection"],
+        backup: ["backupRestoreSection"]
     };
     if (panel === "daily") {
         const form = document.getElementById("dailyForm"), history = document.getElementById("dailyHistorySection");
