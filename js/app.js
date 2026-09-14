@@ -7933,6 +7933,25 @@ async function buildFarmKeeperAIContext() {
             farmType: farmKeeperProfile.farmType || ""
         };
     }
+
+    // Give FarmKeeper AI a compact, calculated snapshot so it can answer
+    // questions about performance without relying on the model to guess totals.
+    const expenses = context.expenses || [];
+    const labour = context.labour || [];
+    const sales = context.sales || [];
+    const expenseTotal = expenses.reduce((n, r) => n + Number(r.amount || 0), 0);
+    const labourTotal = labour.reduce((n, r) => n + Number(r.cost || r.amount || 0), 0);
+    const salesTotal = sales.reduce((n, r) => n + Number(r.amount || 0), 0);
+    context.calculated = {
+        salesTotal,
+        expenseTotal,
+        labourTotal,
+        totalCosts: expenseTotal + labourTotal,
+        estimatedProfit: salesTotal - expenseTotal - labourTotal,
+        cropCount: (context.crops || []).length,
+        animalGroupCount: (context.animals || []).length,
+        openReminderCount: (context.reminders || []).filter(r => !r.completed).length
+    };
     return context;
 }
 
