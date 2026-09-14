@@ -3144,3 +3144,10 @@ body {
 .home-ai-form button:disabled { opacity:.6; cursor:wait; }
 .home-ai-status { min-height:18px; margin:7px 0 0; color:#69756c; font-size:.86rem; }
 @media (max-width:600px) { .home-ai-card { padding:16px; border-radius:18px; } .home-ai-form button { padding:0 14px; } }
+
+/* AI reminder confirmation */
+.home-ai-reminder-draft { border: 1px solid rgba(46,125,50,.22); }
+.home-ai-reminder-draft p { margin: 8px 0; }
+.home-ai-reminder-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.home-ai-reminder-actions button { cursor:pointer; }
+.home-ai-reminder-actions button:disabled { opacity:.6; cursor:wait; }

@@ -7979,14 +7979,19 @@ async function askFarmKeeperAI(question) {
 
     try {
         const farmContext = await buildFarmKeeperAIContext();
+        const wantsReminder = /\b(remind|reminder|set (?:a )?reminder|schedule|remember to)\b/i.test(clean);
         const response = await fetch("/api/ai", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: clean, farmContext })
+            body: JSON.stringify({ question: clean, farmContext, mode: wantsReminder ? "reminder" : "chat", today: new Date().toISOString().slice(0,10) })
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "AI request failed.");
-        appendFarmKeeperAIMessage("assistant", data.answer || "I could not produce an answer.");
+        if (wantsReminder && data.reminder) {
+            showAIReminderConfirmation(data.reminder);
+        } else {
+            appendFarmKeeperAIMessage("assistant", data.answer || "I could not produce an answer.");
+        }
         if (status) status.textContent = "";
     } catch (error) {
         console.error("FarmKeeper AI error", error);

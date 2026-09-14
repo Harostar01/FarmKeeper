@@ -1,4 +1,4 @@
-const CACHE_NAME = "farmkeeper-v23";
+const CACHE_NAME = "farmkeeper-v25";
 
 const FILES_TO_CACHE = [
     "./",
