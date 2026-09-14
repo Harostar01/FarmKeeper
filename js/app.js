@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupBackupRestore();
         setupBottomNavigation();
 setupHomeSearch();
+        setupFarmKeeperAI();
         setupPhase2Features();
 
         console.log("🌱 FarmKeeper is ready.");
@@ -7909,3 +7910,84 @@ function setupHomeSearch() {
     clear?.addEventListener("click",()=>{input.value="";out.innerHTML='<p class="home-search-hint">Search your farm records without leaving Home.</p>';input.focus();});
 }
 
+
+
+async function buildFarmKeeperAIContext() {
+    const stores = ["crops", "animals", "expenses", "sales", "labour", "dailyRecords", "visits", "cropActivities", "reminders"];
+    const data = await Promise.all(stores.map(s => getAllRecords(s).catch(() => [])));
+    const context = {};
+    stores.forEach((store, i) => {
+        context[store] = (data[i] || []).slice(-40).map(record => {
+            const copy = { ...record };
+            // Keep the AI context compact and never send stored photo data.
+            delete copy.dataUrl;
+            delete copy.image;
+            delete copy.photo;
+            return copy;
+        });
+    });
+    if (farmKeeperProfile) {
+        context.profile = {
+            farmName: farmKeeperProfile.farmName || "",
+            location: farmKeeperProfile.location || "",
+            farmType: farmKeeperProfile.farmType || ""
+        };
+    }
+    return context;
+}
+
+function appendFarmKeeperAIMessage(role, text) {
+    const chat = document.getElementById("homeAiChat");
+    if (!chat) return;
+    const message = document.createElement("div");
+    message.className = `home-ai-message ${role}`;
+    message.textContent = text;
+    chat.appendChild(message);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+async function askFarmKeeperAI(question) {
+    const input = document.getElementById("homeAiInput");
+    const send = document.getElementById("homeAiSendButton");
+    const status = document.getElementById("homeAiStatus");
+    const clean = String(question || "").trim();
+    if (!clean || send?.disabled) return;
+
+    appendFarmKeeperAIMessage("user", clean);
+    if (input) input.value = "";
+    if (send) send.disabled = true;
+    if (status) status.textContent = "FarmKeeper AI is checking your farm records…";
+
+    try {
+        const farmContext = await buildFarmKeeperAIContext();
+        const response = await fetch("/api/ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: clean, farmContext })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "AI request failed.");
+        appendFarmKeeperAIMessage("assistant", data.answer || "I could not produce an answer.");
+        if (status) status.textContent = "";
+    } catch (error) {
+        console.error("FarmKeeper AI error", error);
+        appendFarmKeeperAIMessage("assistant", error.message || "FarmKeeper AI is temporarily unavailable.");
+        if (status) status.textContent = "";
+    } finally {
+        if (send) send.disabled = false;
+        input?.focus();
+    }
+}
+
+function setupFarmKeeperAI() {
+    const form = document.getElementById("homeAiForm");
+    const input = document.getElementById("homeAiInput");
+    if (!form || !input) return;
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        askFarmKeeperAI(input.value);
+    });
+    document.querySelectorAll("[data-ai-question]").forEach(button => {
+        button.addEventListener("click", () => askFarmKeeperAI(button.dataset.aiQuestion || ""));
+    });
+}

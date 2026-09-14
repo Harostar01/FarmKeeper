@@ -7,6 +7,12 @@
           content="width=device-width, initial-scale=1.0">
 
     <meta name="theme-color" content="#2e7d32">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FarmKeeper">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <title>FarmKeeper</title>
 
@@ -188,6 +194,30 @@
             <div id="homeSearchResults" class="home-search-results">
                 <p class="home-search-hint">Search your farm records without leaving Home.</p>
             </div>
+        </section>
+
+        <section class="home-ai-card" id="homeAiCard">
+            <div class="home-section-heading">
+                <div>
+                    <span class="home-eyebrow">FARMKEEPER AI</span>
+                    <h2>Ask your farm assistant</h2>
+                </div>
+                <span class="home-ai-icon">🤖</span>
+            </div>
+            <p class="home-ai-intro">Ask questions about your crops, animals, activities, sales and expenses.</p>
+            <div class="home-ai-suggestions" aria-label="AI question suggestions">
+                <button type="button" class="home-ai-chip" data-ai-question="Give me a quick summary of my farm.">📊 Farm summary</button>
+                <button type="button" class="home-ai-chip" data-ai-question="What should I pay attention to on my farm right now?">🌱 What needs attention?</button>
+                <button type="button" class="home-ai-chip" data-ai-question="How are my sales and expenses looking?">💰 Finance insight</button>
+            </div>
+            <div class="home-ai-chat" id="homeAiChat" aria-live="polite">
+                <div class="home-ai-message assistant">Hello! I’m FarmKeeper AI. Ask me about the records you have saved in FarmKeeper.</div>
+            </div>
+            <form class="home-ai-form" id="homeAiForm">
+                <input type="text" id="homeAiInput" maxlength="1000" placeholder="Ask FarmKeeper AI..." autocomplete="off">
+                <button type="submit" id="homeAiSendButton">Ask</button>
+            </form>
+            <p class="home-ai-status" id="homeAiStatus" aria-live="polite"></p>
         </section>
 
         <section class="home-reminders-card" id="homeRemindersCard">

@@ -3118,3 +3118,29 @@ body {
         align-items: flex-start;
     }
 }
+
+
+/* FarmKeeper AI */
+.home-ai-card {
+    margin: 18px 0;
+    padding: 20px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #f4fbf4, #ffffff);
+    border: 1px solid rgba(46, 125, 50, .16);
+    box-shadow: 0 10px 30px rgba(20, 70, 30, .08);
+}
+.home-ai-icon { font-size: 30px; }
+.home-ai-intro { margin: -8px 0 14px; color: #5b665d; }
+.home-ai-suggestions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.home-ai-chip { border:1px solid rgba(46,125,50,.2); background:#fff; border-radius:999px; padding:9px 12px; cursor:pointer; font:inherit; }
+.home-ai-chip:hover { transform:translateY(-1px); }
+.home-ai-chat { max-height:280px; overflow:auto; display:flex; flex-direction:column; gap:10px; padding:4px 0 12px; }
+.home-ai-message { max-width:90%; padding:11px 13px; border-radius:15px; line-height:1.45; white-space:pre-wrap; }
+.home-ai-message.assistant { align-self:flex-start; background:#edf6ee; }
+.home-ai-message.user { align-self:flex-end; background:#2e7d32; color:#fff; }
+.home-ai-form { display:flex; gap:8px; }
+.home-ai-form input { flex:1; min-width:0; border:1px solid #ccd7ce; border-radius:13px; padding:12px; font:inherit; }
+.home-ai-form button { border:0; border-radius:13px; padding:0 18px; background:#2e7d32; color:#fff; font-weight:700; cursor:pointer; }
+.home-ai-form button:disabled { opacity:.6; cursor:wait; }
+.home-ai-status { min-height:18px; margin:7px 0 0; color:#69756c; font-size:.86rem; }
+@media (max-width:600px) { .home-ai-card { padding:16px; border-radius:18px; } .home-ai-form button { padding:0 14px; } }
