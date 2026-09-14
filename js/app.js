@@ -8003,6 +8003,78 @@ async function askFarmKeeperAI(question) {
     }
 }
 
+function showAIReminderConfirmation(reminder) {
+    const chat = document.getElementById("homeAiChat");
+    if (!chat || !reminder) return;
+
+    const card = document.createElement("div");
+    card.className = "home-ai-message assistant home-ai-reminder-draft";
+
+    const title = document.createElement("strong");
+    title.textContent = "🔔 Reminder ready";
+    card.appendChild(title);
+
+    const details = document.createElement("p");
+    const due = reminder.dueDate ? new Date(`${reminder.dueDate}T${reminder.dueTime || "00:00"}`).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" }) : "Date not set";
+    details.textContent = `${reminder.title || "Farm task"}\n${due}${reminder.dueTime ? ` at ${reminder.dueTime}` : ""}${reminder.repeat && reminder.repeat !== "none" ? ` · ${reminder.repeat}` : ""}`;
+    card.appendChild(details);
+
+    if (reminder.notes) {
+        const notes = document.createElement("p");
+        notes.textContent = reminder.notes;
+        card.appendChild(notes);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "home-ai-reminder-actions";
+
+    const create = document.createElement("button");
+    create.type = "button";
+    create.className = "small-button";
+    create.textContent = "🔔 Create reminder";
+
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "small-button";
+    cancel.textContent = "Cancel";
+
+    create.addEventListener("click", async () => {
+        create.disabled = true;
+        cancel.disabled = true;
+        try {
+            await addRecord("reminders", {
+                type: "task",
+                title: String(reminder.title || "Farm task").slice(0, 160),
+                dueDate: reminder.dueDate,
+                dueTime: reminder.dueTime || "",
+                repeat: reminder.repeat || "none",
+                target: reminder.target || "",
+                notes: String(reminder.notes || "").slice(0, 500),
+                notify: false,
+                completed: false,
+                createdAt: new Date().toISOString()
+            });
+            card.remove();
+            appendFarmKeeperAIMessage("assistant", "✅ Reminder created successfully. You can see it in your FarmKeeper Reminders.");
+            await loadReminders();
+            await refreshHomeReminders();
+            await updateReminderStatus();
+            checkTaskReminders();
+        } catch (error) {
+            console.error("Could not create AI reminder", error);
+            create.disabled = false;
+            cancel.disabled = false;
+            appendFarmKeeperAIMessage("assistant", "I couldn't save that reminder. Please try again.");
+        }
+    });
+
+    cancel.addEventListener("click", () => card.remove());
+    actions.append(create, cancel);
+    card.appendChild(actions);
+    chat.appendChild(card);
+    chat.scrollTop = chat.scrollHeight;
+}
+
 function setupFarmKeeperAI() {
     const form = document.getElementById("homeAiForm");
     const input = document.getElementById("homeAiInput");
