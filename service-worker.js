@@ -1,4 +1,4 @@
-const CACHE_NAME = "farmkeeper-v22";
+const CACHE_NAME = "farmkeeper-v23";
 
 const FILES_TO_CACHE = [
     "./",
@@ -11,114 +11,67 @@ const FILES_TO_CACHE = [
     "./icons/icon-512.png"
 ];
 
-
 // ================================
 // INSTALL
 // ================================
-
 self.addEventListener("install", event => {
-
     event.waitUntil(
-
-        caches.open(CACHE_NAME)
-            .then(cache => {
-
-                return cache.addAll(
-                    FILES_TO_CACHE
-                );
-
-            })
-
+        caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
     );
-
     self.skipWaiting();
-
 });
-
 
 // ================================
 // ACTIVATE
 // ================================
-
 self.addEventListener("activate", event => {
-
     event.waitUntil(
-
-        caches.keys()
-            .then(cacheNames => {
-
-                return Promise.all(
-
-                    cacheNames
-                        .filter(
-                            name =>
-                                name !== CACHE_NAME
-                        )
-                        .map(
-                            name =>
-                                caches.delete(name)
-                        )
-
-                );
-
-            })
-
+        caches.keys().then(cacheNames =>
+            Promise.all(
+                cacheNames
+                    .filter(name => name !== CACHE_NAME)
+                    .map(name => caches.delete(name))
+            )
+        )
     );
-
     self.clients.claim();
-
 });
-
 
 // ================================
 // FETCH
 // ================================
-
 self.addEventListener("fetch", event => {
+    const request = event.request;
+
+    // Never cache POST/PUT/PATCH/DELETE requests.
+    // This is important for the FarmKeeper AI API because it uses POST.
+    if (request.method !== "GET") {
+        return;
+    }
 
     event.respondWith(
-
-        fetch(event.request)
+        fetch(request)
             .then(response => {
-
-                // Save the newest version
-                // in the cache
-
-                const responseClone =
-                    response.clone();
-
-                caches.open(CACHE_NAME)
-                    .then(cache => {
-
-                        cache.put(
-                            event.request,
-                            responseClone
-                        );
-
+                // Only cache successful GET responses.
+                if (response.ok) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(request, responseClone).catch(() => {});
                     });
-
+                }
                 return response;
-
             })
-            .catch(() => {
-
-                // If offline, use cached version
-
-                return caches.match(
-                    event.request
-                );
-
-            })
-
+            .catch(() => caches.match(request))
     );
-
 });
 
 self.addEventListener("notificationclick", event => {
     event.notification.close();
-    event.waitUntil(clients.matchAll({type:"window", includeUncontrolled:true}).then(list => {
-        const existing=list.find(c => "focus" in c);
-        if(existing) return existing.focus();
-        return clients.openWindow("./");
-    }));
+    event.waitUntil(
+        clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+            const existing = list.find(c => "focus" in c);
+            if (existing) return existing.focus();
+            return clients.openWindow("./");
+        })
+    );
 });
