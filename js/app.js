@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupBottomNavigation();
 setupHomeSearch();
         setupFarmKeeperAI();
+        setupAICropDoctor();
         setupPhase2Features();
 
         console.log("🌱 FarmKeeper is ready.");
@@ -8102,6 +8103,157 @@ function showAIReminderConfirmation(reminder) {
     card.appendChild(actions);
     chat.appendChild(card);
     chat.scrollTop = chat.scrollHeight;
+}
+
+
+function setupAICropDoctor() {
+    const openButton = document.getElementById("openCropDoctorButton");
+    const card = document.getElementById("homeAiCropDoctorCard");
+    const closeButton = document.getElementById("closeCropDoctorButton");
+    const input = document.getElementById("aiCropPhotoInput");
+    const previewWrap = document.getElementById("aiCropPreviewWrap");
+    const preview = document.getElementById("aiCropPreview");
+    const analyzeButton = document.getElementById("analyzeCropPhotoButton");
+    if (!card || !input || !preview || !analyzeButton) return;
+
+    const open = async () => {
+        card.style.display = "block";
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        await populateAICropSelector();
+    };
+    openButton?.addEventListener("click", open);
+    closeButton?.addEventListener("click", () => { card.style.display = "none"; });
+    input.addEventListener("change", () => {
+        const file = input.files?.[0];
+        if (!file) { previewWrap.style.display = "none"; return; }
+        if (!file.type.startsWith("image/")) { alert("Please choose a crop image."); input.value = ""; return; }
+        if (file.size > 8 * 1024 * 1024) { alert("Please choose an image smaller than 8 MB."); input.value = ""; return; }
+        const reader = new FileReader();
+        reader.onload = () => { preview.src = reader.result; previewWrap.style.display = "block"; };
+        reader.readAsDataURL(file);
+    });
+    analyzeButton.addEventListener("click", analyzeAICropPhoto);
+}
+
+async function populateAICropSelector() {
+    const select = document.getElementById("aiCropSelect");
+    if (!select) return;
+    const previous = select.value;
+    try {
+        const crops = await getAllRecords("crops");
+        select.innerHTML = '<option value="">Select a crop</option>' + crops.map(c => `<option value="${Number(c.id)}">${escapeHtml(c.cropName || "Crop")} ${c.plot ? `— ${escapeHtml(c.plot)}` : ""}</option>`).join("");
+        if ([...select.options].some(o => o.value === previous)) select.value = previous;
+    } catch (e) { console.warn("Could not load AI crop selector", e); }
+}
+
+function resizeCropImage(file, maxSide = 1600, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Could not read the crop photo."));
+        reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error("Could not process the crop photo."));
+            img.onload = () => {
+                const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+                canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderAICropDiagnosis(diagnosis, imageDataUrl, cropId) {
+    const out = document.getElementById("aiCropDiagnosisResult");
+    if (!out) return;
+    const issueList = (diagnosis.possibleIssues || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>No clear issue identified from the image.</li>";
+    const obsList = (diagnosis.observations || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>No reliable visible observation.</li>";
+    const actionList = (diagnosis.recommendedActions || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>Monitor the crop and seek local agricultural advice if symptoms persist.</li>";
+    out.innerHTML = `
+      <div class="ai-crop-result-header"><span>🌱 AI Crop Assessment</span><strong>${escapeHtml(diagnosis.confidence || "low")} confidence</strong></div>
+      <h3>${escapeHtml(diagnosis.cropName || "Crop")}</h3>
+      <p>${escapeHtml(diagnosis.assessment || "No clear assessment could be made.")}</p>
+      <div class="ai-crop-result-grid">
+        <div><strong>Possible issues</strong><ul>${issueList}</ul></div>
+        <div><strong>Visible observations</strong><ul>${obsList}</ul></div>
+        <div><strong>Recommended next steps</strong><ul>${actionList}</ul></div>
+      </div>
+      <div class="ai-crop-urgency"><strong>Priority:</strong> ${escapeHtml(diagnosis.urgency || "monitor")}</div>
+      <p class="ai-crop-disclaimer">${escapeHtml(diagnosis.disclaimer || "This is an AI visual assessment, not a confirmed diagnosis.")}</p>
+      <div class="home-ai-reminder-actions">
+        <button type="button" class="small-button" id="saveAICropDiagnosisButton">💾 Save to crop records</button>
+        <button type="button" class="small-button" id="newAICropScanButton">📷 Scan another</button>
+      </div>`;
+    out.style.display = "block";
+    document.getElementById("saveAICropDiagnosisButton")?.addEventListener("click", () => saveAICropDiagnosis(diagnosis, imageDataUrl, cropId));
+    document.getElementById("newAICropScanButton")?.addEventListener("click", () => {
+        document.getElementById("aiCropPhotoInput").value = "";
+        document.getElementById("aiCropPreviewWrap").style.display = "none";
+        out.style.display = "none";
+    });
+}
+
+async function analyzeAICropPhoto() {
+    const input = document.getElementById("aiCropPhotoInput");
+    const status = document.getElementById("aiCropDoctorStatus");
+    const button = document.getElementById("analyzeCropPhotoButton");
+    const file = input?.files?.[0];
+    if (!file) { alert("Please take or choose a crop photo first."); return; }
+    if (button) button.disabled = true;
+    if (status) status.textContent = "FarmKeeper AI is examining the crop photo…";
+    document.getElementById("aiCropDiagnosisResult")?.setAttribute("style", "display:none;");
+    try {
+        const imageDataUrl = await resizeCropImage(file);
+        const select = document.getElementById("aiCropSelect");
+        const cropId = select?.value ? Number(select.value) : null;
+        let cropName = select?.selectedOptions?.[0]?.textContent || "";
+        if (cropName.includes("—")) cropName = cropName.split("—")[0].trim();
+        let cropContext = {};
+        if (cropId) cropContext = await getRecordById("crops", cropId).catch(() => ({}));
+        const response = await fetch("/api/ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode: "cropDoctor", question: "Assess the visible crop condition and explain what the farmer should check next.", imageDataUrl, cropName, farmContext: cropContext, today: new Date().toISOString().slice(0,10) })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Crop analysis failed.");
+        renderAICropDiagnosis(data.diagnosis || {}, imageDataUrl, cropId);
+        if (status) status.textContent = "";
+    } catch (error) {
+        console.error("FarmKeeper AI crop doctor error", error);
+        if (status) status.textContent = "";
+        alert(error.message || "FarmKeeper AI could not analyze this crop photo.");
+    } finally { if (button) button.disabled = false; }
+}
+
+async function saveAICropDiagnosis(diagnosis, imageDataUrl, cropId) {
+    try {
+        const notes = [
+            `AI assessment: ${diagnosis.assessment || ""}`,
+            `Possible issues: ${(diagnosis.possibleIssues || []).join("; ")}`,
+            `Observations: ${(diagnosis.observations || []).join("; ")}`,
+            `Recommended actions: ${(diagnosis.recommendedActions || []).join("; ")}`,
+            `Confidence: ${diagnosis.confidence || "low"}. Priority: ${diagnosis.urgency || "monitor"}.`,
+            diagnosis.disclaimer || "AI visual assessment; not a confirmed diagnosis."
+        ].join("\n");
+        if (cropId) {
+            await addRecord("cropActivities", { cropId: Number(cropId), date: new Date().toISOString().slice(0,10), type: "AI Crop Diagnosis", quantity: 0, unit: "", notes, createdAt: new Date().toISOString() });
+        } else {
+            await addRecord("dailyRecords", { date: new Date().toISOString().slice(0,10), activityType: "AI Crop Diagnosis", notes, createdAt: new Date().toISOString() });
+        }
+        await addRecord("photos", { target: cropId ? `crop:${cropId}` : "farm:ai-crop-diagnosis", caption: `AI crop assessment — ${diagnosis.cropName || "Crop"}`, dataUrl: imageDataUrl, createdAt: new Date().toISOString(), aiDiagnosis: true });
+        appendFarmKeeperAIMessage("assistant", "✅ Crop assessment saved to your FarmKeeper records." );
+        document.getElementById("saveAICropDiagnosisButton")?.setAttribute("disabled", "true");
+        await loadCropList?.();
+    } catch (error) {
+        console.error("Could not save AI crop diagnosis", error);
+        alert("I couldn't save the crop assessment. Please try again.");
+    }
 }
 
 function setupFarmKeeperAI() {

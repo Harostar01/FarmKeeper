@@ -3177,3 +3177,23 @@ body.farmkeeper-ai-nonhome .farmkeeper-ai-floating { display: flex; }
 @media (max-width: 600px) {
     .farmkeeper-ai-floating { right: 14px; bottom: 76px; width: 44px; height: 44px; }
 }
+
+
+/* v26 AI Crop Doctor */
+.home-ai-crop-doctor-card { margin: 14px 0; padding: 18px; border-radius: 20px; background: #fff; border: 1px solid rgba(46,125,50,.18); box-shadow: 0 8px 26px rgba(0,0,0,.06); }
+.home-ai-doctor-help { margin: 0 0 14px; color: #5f6b63; line-height: 1.5; }
+.home-ai-doctor-select { width:100%; padding:12px; border:1px solid #d8dfd9; border-radius:12px; background:#fff; margin:6px 0 12px; font:inherit; }
+.ai-crop-photo-label { display:flex; align-items:center; justify-content:center; min-height:52px; padding:12px; border:1px dashed rgba(46,125,50,.45); border-radius:14px; background:#f7fbf7; cursor:pointer; font-weight:700; }
+.ai-crop-photo-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.ai-crop-preview-wrap { margin-top:12px; display:grid; gap:10px; }
+.ai-crop-preview { width:100%; max-height:280px; object-fit:cover; border-radius:16px; border:1px solid #e1e7e2; }
+.ai-crop-diagnosis-result { margin-top:14px; padding:15px; border-radius:16px; background:#f8fbf8; border:1px solid rgba(46,125,50,.15); }
+.ai-crop-result-header { display:flex; justify-content:space-between; gap:10px; align-items:center; font-size:.9rem; }
+.ai-crop-result-header strong { text-transform:capitalize; font-size:.78rem; padding:5px 8px; border-radius:999px; background:#e7f3e8; }
+.ai-crop-diagnosis-result h3 { margin:10px 0 6px; }
+.ai-crop-diagnosis-result p { white-space:pre-line; line-height:1.5; }
+.ai-crop-result-grid { display:grid; gap:12px; }
+.ai-crop-result-grid ul { margin:7px 0 0; padding-left:20px; }
+.ai-crop-result-grid li { margin:5px 0; }
+.ai-crop-urgency { margin-top:12px; padding:9px 11px; border-radius:10px; background:#fff; }
+.ai-crop-disclaimer { font-size:.78rem; color:#66736a; }
