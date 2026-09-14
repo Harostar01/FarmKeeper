@@ -3151,3 +3151,29 @@ body {
 .home-ai-reminder-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
 .home-ai-reminder-actions button { cursor:pointer; }
 .home-ai-reminder-actions button:disabled { opacity:.6; cursor:wait; }
+
+
+/* FarmKeeper AI is a full card on Home only; other tabs get a small shortcut. */
+.farmkeeper-ai-floating {
+    position: fixed;
+    right: 18px;
+    bottom: 86px;
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(46,125,50,.25);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,.14);
+    cursor: pointer;
+    font: inherit;
+}
+.farmkeeper-ai-floating span { font-size: 10px; font-weight: 800; }
+body.farmkeeper-ai-nonhome .farmkeeper-ai-floating { display: flex; }
+@media (max-width: 600px) {
+    .farmkeeper-ai-floating { right: 14px; bottom: 76px; width: 44px; height: 44px; }
+}

@@ -7221,6 +7221,8 @@ function setupBottomNavigation() {
     const nav = document.getElementById("bottomNav");
     if (!nav) return;
 
+    setupNonHomeAIAccess();
+
     document.getElementById("homeCropsGlance")?.addEventListener("click", () => document.querySelector('.bottom-nav-item[data-nav="crops"]')?.click());
     document.getElementById("homeAnimalsGlance")?.addEventListener("click", () => document.querySelector('.bottom-nav-item[data-nav="animals"]')?.click());
     document.getElementById("homeRecordsGlance")?.addEventListener("click", () => {
@@ -7231,6 +7233,7 @@ function setupBottomNavigation() {
     nav.querySelectorAll(".bottom-nav-item").forEach(button => {
         button.addEventListener("click", async () => {
             const destination = button.dataset.nav;
+            document.body.classList.toggle("farmkeeper-ai-nonhome", destination !== "home");
 
             nav.querySelectorAll(".bottom-nav-item").forEach(item => {
                 item.classList.toggle("active", item === button);
@@ -7306,7 +7309,30 @@ function setupBottomNavigation() {
 
     // Start on the complete Home landing page with no nav item active.
     document.body.removeAttribute("data-navigation");
+    document.body.classList.remove("farmkeeper-ai-nonhome");
     showFullAppLanding();
+}
+
+function setupNonHomeAIAccess() {
+    if (document.getElementById("farmKeeperAIFloatingButton")) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "farmKeeperAIFloatingButton";
+    button.className = "farmkeeper-ai-floating";
+    button.setAttribute("aria-label", "Open FarmKeeper AI on Home");
+    button.title = "Open FarmKeeper AI";
+    button.innerHTML = "🤖<span>AI</span>";
+    button.addEventListener("click", async () => {
+        const homeButton = document.querySelector('.bottom-nav-item[data-nav="home"]');
+        if (homeButton) {
+            homeButton.click();
+            setTimeout(() => document.getElementById("homeAiCard")?.scrollIntoView({ behavior: "smooth", block: "center" }), 120);
+        } else {
+            await returnToHomeLanding();
+            document.getElementById("homeAiCard")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+    document.body.appendChild(button);
 }
 
 function getNavigationSections() {
@@ -7354,6 +7380,7 @@ function getAllNavigationPanels() {
         "homeAtAGlance",
         "homeSearchCard",
         "homeRemindersCard",
+        "homeAiCard",
         "quick-actions",
         "cropWorkspaceIntro",
         "cropForm",
@@ -7391,6 +7418,7 @@ function getLandingPanels() {
         "homeAtAGlance",
         "homeSearchCard",
         "homeRemindersCard",
+        "homeAiCard",
         "quick-actions",
         "modules"
     ];
@@ -7477,6 +7505,7 @@ function resetNavigationToLanding() {
 
     document.body.classList.remove("navigation-active");
     document.body.removeAttribute("data-navigation");
+    document.body.classList.remove("farmkeeper-ai-nonhome");
     showFullAppLanding();
 }
 
