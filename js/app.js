@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupBottomNavigation();
 setupHomeSearch();
         setupFarmKeeperAI();
+        setupAIToolsMenu();
         setupAIUnifiedScanner();
         setupPhase2Features();
 
@@ -7327,53 +7328,10 @@ function setupBottomNavigation() {
         });
     }
 
-    setupHomeAIToolsMenu();
-
     // Start on the complete Home landing page with no nav item active.
     document.body.removeAttribute("data-navigation");
     document.body.classList.remove("farmkeeper-ai-nonhome");
     showFullAppLanding();
-}
-
-function setupHomeAIToolsMenu() {
-    const toggle = document.getElementById("homeAIToolsToggle");
-    const menu = document.getElementById("homeAIToolsMenu");
-    if (!toggle || !menu || toggle.dataset.bound === "1") return;
-    toggle.dataset.bound = "1";
-    const close = () => {
-        menu.hidden = true;
-        toggle.setAttribute("aria-expanded", "false");
-        toggle.classList.remove("open");
-    };
-    toggle.addEventListener("click", () => {
-        const willOpen = menu.hidden;
-        menu.hidden = !willOpen;
-        toggle.setAttribute("aria-expanded", String(willOpen));
-        toggle.classList.toggle("open", willOpen);
-    });
-    document.getElementById("homeAIFarmReportButton")?.addEventListener("click", () => {
-        close();
-        const moreButton = document.querySelector('.bottom-nav-item[data-nav="more"]');
-        if (moreButton) {
-            moreButton.click();
-            setTimeout(() => {
-                const reportButton = document.getElementById("moreReportsButton");
-                if (reportButton) reportButton.click();
-                setTimeout(() => document.getElementById("generateAIReportButton")?.click(), 150);
-            }, 120);
-        }
-    });
-    menu.querySelectorAll("[data-ai-question]").forEach(button => {
-        button.addEventListener("click", () => {
-            const input = document.getElementById("homeAiInput");
-            const question = button.dataset.aiQuestion || "";
-            if (input) {
-                input.value = question;
-                input.focus();
-            }
-            close();
-        });
-    });
 }
 
 function setupNonHomeAIAccess() {
@@ -7548,6 +7506,12 @@ function openHomeReminders() {
 
 function showFullAppLanding() {
     hideAllNavigationPanels();
+
+    // Home must never show the crop workspace. Crop records belong only to the Crops tab.
+    ["cropWorkspaceIntro", "cropForm", "cropListSection", "cropDetailsSection", "cropActivityForm", "cropActivityOverview"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.style.setProperty("display", "none", "important");
+    });
 
     getLandingPanels().forEach(id => {
         const element = getElementByNavigationId(id);
@@ -8522,6 +8486,26 @@ async function saveAIAnimalDiagnosis(diagnosis, imageDataUrl, animalId) {
     } catch (error) { console.error("Could not save AI animal diagnosis", error); alert("I couldn't save the animal assessment. Please try again."); }
 }
 
+function setupAIToolsMenu() {
+    const toggle = document.getElementById("homeAIToolsToggle");
+    const menu = document.getElementById("homeAIToolsMenu");
+    if (!toggle || !menu) return;
+    const setOpen = (open) => {
+        menu.hidden = !open;
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.innerHTML = open ? '− <span>AI Tools</span>' : '＋ <span>AI Tools</span>';
+    };
+    setOpen(false);
+    toggle.addEventListener("click", () => setOpen(menu.hidden));
+    menu.addEventListener("click", (event) => {
+        const item = event.target.closest(".home-ai-tool-item");
+        if (item) setOpen(false);
+    });
+    document.addEventListener("click", (event) => {
+        if (!menu.hidden && !menu.contains(event.target) && !toggle.contains(event.target)) setOpen(false);
+    });
+}
+
 function setupFarmKeeperAI() {
     const form = document.getElementById("homeAiForm");
     const input = document.getElementById("homeAiInput");
@@ -8532,5 +8516,15 @@ function setupFarmKeeperAI() {
     });
     document.querySelectorAll("[data-ai-question]").forEach(button => {
         button.addEventListener("click", () => askFarmKeeperAI(button.dataset.aiQuestion || ""));
+    });
+    const reportShortcut = document.getElementById("homeAIFarmReportButton");
+    const reportButton = document.getElementById("generateAIReportButton");
+    reportShortcut?.addEventListener("click", () => {
+        if (reportButton) {
+            reportButton.click();
+            document.getElementById("farmReportsSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+            askFarmKeeperAI("Generate a detailed farm report from my saved FarmKeeper records, covering crops, animals, finances, reminders and recent activities.");
+        }
     });
 }

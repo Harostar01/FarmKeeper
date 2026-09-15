@@ -3155,6 +3155,20 @@ body {
 .home-ai-status { min-height:18px; margin:7px 0 0; color:#69756c; font-size:.86rem; }
 @media (max-width:600px) { .home-ai-card { padding:16px; border-radius:18px; } .home-ai-form button { padding:0 14px; } }
 
+/* V27.5 Unified AI Tools — compact by default */
+.home-ai-actions-row { display:flex; justify-content:flex-end; margin:0 0 12px; }
+.home-ai-tools-toggle { display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(46,125,50,.22); background:#fff; color:#2e7d32; border-radius:999px; padding:8px 13px; cursor:pointer; font:inherit; font-weight:800; box-shadow:0 3px 10px rgba(20,70,30,.06); }
+.home-ai-tools-toggle:hover { transform:translateY(-1px); }
+.home-ai-tools-toggle[aria-expanded="true"] { border-radius:14px; }
+.home-ai-tools-menu[hidden] { display:none !important; }
+.home-ai-tools-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 14px; padding:10px; border:1px solid rgba(46,125,50,.14); border-radius:16px; background:#f7fbf7; }
+.home-ai-tool-item { display:flex; align-items:center; gap:10px; width:100%; border:1px solid #dce6de; background:#fff; color:inherit; border-radius:12px; padding:10px 12px; cursor:pointer; text-align:left; font:inherit; }
+.home-ai-tool-item:hover { border-color:rgba(46,125,50,.35); transform:translateY(-1px); }
+.home-ai-tool-item > span { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.home-ai-tool-item strong { font-size:.92rem; }
+.home-ai-tool-item small { color:#69756c; font-size:.76rem; line-height:1.25; }
+@media (max-width:600px) { .home-ai-actions-row { justify-content:flex-start; } .home-ai-tools-menu { grid-template-columns:1fr; } }
+
 /* AI reminder confirmation */
 .home-ai-reminder-draft { border: 1px solid rgba(46,125,50,.22); }
 .home-ai-reminder-draft p { margin: 8px 0; }
@@ -3630,17 +3644,3 @@ body { background: #f4f7f4; color: #263326; }
 .ai-report-card .ai-report-body p { margin: 8px 0; line-height: 1.6; }
 .ai-report-card .ai-report-body ul { margin: 8px 0 12px 20px; padding: 0; }
 .ai-report-card .ai-report-body li { margin: 5px 0; line-height: 1.5; }
-
-/* V27.5 Unified AI tools: keep Ask FarmKeeper AI visible while grouping secondary AI tools. */
-.home-ai-actions-row { display:flex; justify-content:flex-end; margin:-4px 0 12px; }
-.home-ai-tools-toggle { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(46,125,50,.22); background:#fff; color:#2e7d32; border-radius:999px; padding:8px 13px; font:inherit; font-weight:800; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
-.home-ai-tools-toggle:hover { transform:translateY(-1px); box-shadow:0 5px 14px rgba(0,0,0,.07); }
-.home-ai-tools-toggle.open { background:#edf6ee; }
-.home-ai-tools-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 14px; padding:10px; border:1px solid rgba(46,125,50,.14); border-radius:16px; background:#f8fbf8; }
-.home-ai-tools-menu[hidden] { display:none; }
-.home-ai-tool-item { display:flex; align-items:center; gap:10px; text-align:left; border:1px solid #dfe8e1; background:#fff; border-radius:13px; padding:11px; cursor:pointer; font:inherit; color:#253128; min-width:0; }
-.home-ai-tool-item:hover { border-color:rgba(46,125,50,.35); transform:translateY(-1px); }
-.home-ai-tool-item > span { display:flex; flex-direction:column; min-width:0; }
-.home-ai-tool-item strong { font-size:.92rem; }
-.home-ai-tool-item small { color:#68746b; margin-top:2px; line-height:1.25; }
-@media (max-width:600px) { .home-ai-tools-menu { grid-template-columns:1fr; } .home-ai-actions-row { justify-content:stretch; } .home-ai-tools-toggle { width:100%; justify-content:center; } }
