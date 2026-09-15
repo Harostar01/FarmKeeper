@@ -210,7 +210,7 @@
                 <button type="button" class="home-ai-chip" data-ai-question="What should I pay attention to on my farm right now?">🌱 What needs attention?</button>
                 <button type="button" class="home-ai-chip" data-ai-question="How are my sales and expenses looking?">💰 Finance insight</button>
                 <button type="button" class="home-ai-chip" data-ai-question="What should I work on next based on my farm records and reminders?">📋 Next actions</button>
-                <button type="button" class="home-ai-chip" id="openCropDoctorButton">📷 Scan a crop</button>
+                <button type="button" class="home-ai-chip" id="openAIScanButton">📷 AI Farm Scan</button>
             </div>
             <div class="home-ai-chat" id="homeAiChat" aria-live="polite">
                 <div class="home-ai-message assistant">Hello! I’m FarmKeeper AI. Ask me about the records you have saved in FarmKeeper.</div>
@@ -222,25 +222,35 @@
             <p class="home-ai-status" id="homeAiStatus" aria-live="polite"></p>
         </section>
 
-        <section class="home-ai-crop-doctor-card" id="homeAiCropDoctorCard" style="display:none;">
+        <section class="home-ai-scan-card" id="homeAiScanCard" style="display:none;">
             <div class="home-section-heading">
                 <div>
-                    <span class="home-eyebrow">AI CROP DOCTOR</span>
-                    <h2>Check a crop photo</h2>
+                    <span class="home-eyebrow">AI FARM SCAN</span>
+                    <h2>Check a crop or animal</h2>
                 </div>
-                <button type="button" class="home-section-link" id="closeCropDoctorButton">Close</button>
+                <button type="button" class="home-section-link" id="closeAIScanButton">Close</button>
             </div>
-            <p class="home-ai-doctor-help">Take a clear photo of a leaf, fruit, stem or other crop problem. FarmKeeper AI will look for visible signs and give cautious next steps.</p>
-            <label for="aiCropSelect">Crop (optional)</label>
-            <select id="aiCropSelect" class="home-ai-doctor-select"><option value="">Select a crop</option></select>
-            <label for="aiCropPhotoInput" class="ai-crop-photo-label">📷 Take or choose a crop photo</label>
-            <input type="file" id="aiCropPhotoInput" accept="image/png,image/jpeg,image/webp" capture="environment" class="ai-crop-photo-input">
-            <div id="aiCropPreviewWrap" class="ai-crop-preview-wrap" style="display:none;">
-                <img id="aiCropPreview" class="ai-crop-preview" alt="Crop photo preview">
-                <button type="button" class="small-button" id="analyzeCropPhotoButton">🔎 Analyze crop</button>
+            <p class="home-ai-doctor-help">Use one scanner for crops and animals. Choose what you are checking, take a clear photo, and FarmKeeper AI will provide a cautious visual assessment.</p>
+            <div class="ai-scan-type-switch" role="group" aria-label="Choose what to scan">
+                <button type="button" class="ai-scan-type active" data-scan-type="crop">🌱 Crop</button>
+                <button type="button" class="ai-scan-type" data-scan-type="animal">🐄 Animal</button>
             </div>
-            <p class="home-ai-status" id="aiCropDoctorStatus" aria-live="polite"></p>
-            <div id="aiCropDiagnosisResult" class="ai-crop-diagnosis-result" style="display:none;"></div>
+            <div id="aiScanCropFields">
+                <label for="aiCropSelect">Crop (optional)</label>
+                <select id="aiCropSelect" class="home-ai-doctor-select"><option value="">Select a crop</option></select>
+            </div>
+            <div id="aiScanAnimalFields" style="display:none;">
+                <label for="aiAnimalSelect">Animal group (optional)</label>
+                <select id="aiAnimalSelect" class="home-ai-doctor-select"><option value="">Select an animal group</option></select>
+            </div>
+            <label for="aiFarmScanPhotoInput" class="ai-crop-photo-label">📷 Take or choose a photo</label>
+            <input type="file" id="aiFarmScanPhotoInput" accept="image/png,image/jpeg,image/webp" capture="environment" class="ai-crop-photo-input">
+            <div id="aiFarmScanPreviewWrap" class="ai-crop-preview-wrap" style="display:none;">
+                <img id="aiFarmScanPreview" class="ai-crop-preview" alt="Farm scan photo preview">
+                <button type="button" class="small-button" id="analyzeFarmScanButton">🔎 Analyze</button>
+            </div>
+            <p class="home-ai-status" id="aiFarmScanStatus" aria-live="polite"></p>
+            <div id="aiFarmScanResult" class="ai-crop-diagnosis-result" style="display:none;"></div>
         </section>
 
         <section class="home-reminders-card" id="homeRemindersCard">

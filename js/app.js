@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupBottomNavigation();
 setupHomeSearch();
         setupFarmKeeperAI();
-        setupAICropDoctor();
+        setupAIUnifiedScanner();
         setupPhase2Features();
 
         console.log("🌱 FarmKeeper is ready.");
@@ -8106,6 +8106,87 @@ function showAIReminderConfirmation(reminder) {
 }
 
 
+function setupAIUnifiedScanner() {
+    const openButton = document.getElementById("openAIScanButton");
+    const card = document.getElementById("homeAiScanCard");
+    const closeButton = document.getElementById("closeAIScanButton");
+    const input = document.getElementById("aiFarmScanPhotoInput");
+    const previewWrap = document.getElementById("aiFarmScanPreviewWrap");
+    const preview = document.getElementById("aiFarmScanPreview");
+    const analyzeButton = document.getElementById("analyzeFarmScanButton");
+    const result = document.getElementById("aiFarmScanResult");
+    const cropFields = document.getElementById("aiScanCropFields");
+    const animalFields = document.getElementById("aiScanAnimalFields");
+    if (!card || !input || !preview || !analyzeButton) return;
+    let scanType = "crop";
+    const setType = async (type) => {
+        scanType = type === "animal" ? "animal" : "crop";
+        document.querySelectorAll(".ai-scan-type").forEach(btn => btn.classList.toggle("active", btn.dataset.scanType === scanType));
+        if (cropFields) cropFields.style.display = scanType === "crop" ? "block" : "none";
+        if (animalFields) animalFields.style.display = scanType === "animal" ? "block" : "none";
+        if (scanType === "crop") await populateAICropSelector(); else await populateAIAnimalSelector();
+        if (result) { result.style.display = "none"; result.innerHTML = ""; }
+    };
+    const open = async () => { card.style.display = "block"; card.scrollIntoView({ behavior: "smooth", block: "center" }); await setType(scanType); };
+    openButton?.addEventListener("click", open);
+    closeButton?.addEventListener("click", () => { card.style.display = "none"; });
+    document.querySelectorAll(".ai-scan-type").forEach(btn => btn.addEventListener("click", () => setType(btn.dataset.scanType)));
+    input.addEventListener("change", () => {
+        const file = input.files?.[0];
+        if (!file) { previewWrap.style.display = "none"; return; }
+        if (!file.type.startsWith("image/")) { alert("Please choose an image."); input.value = ""; return; }
+        if (file.size > 8 * 1024 * 1024) { alert("Please choose an image smaller than 8 MB."); input.value = ""; return; }
+        const reader = new FileReader();
+        reader.onload = () => { preview.src = reader.result; previewWrap.style.display = "grid"; };
+        reader.readAsDataURL(file);
+    });
+    analyzeButton.addEventListener("click", async () => {
+        const file = input.files?.[0];
+        const status = document.getElementById("aiFarmScanStatus");
+        if (!file) { alert("Please take or choose a photo first."); return; }
+        analyzeButton.disabled = true;
+        if (status) status.textContent = `FarmKeeper AI is examining the ${scanType} photo…`;
+        try {
+            const imageDataUrl = await resizeCropImage(file);
+            let id = null, name = "", context = {};
+            if (scanType === "crop") {
+                const select = document.getElementById("aiCropSelect"); id = select?.value ? Number(select.value) : null;
+                name = select?.selectedOptions?.[0]?.textContent || ""; if (name.includes("—")) name = name.split("—")[0].trim();
+                if (id) context = await getRecordById("crops", id).catch(() => ({}));
+            } else {
+                const select = document.getElementById("aiAnimalSelect"); id = select?.value ? Number(select.value) : null;
+                name = select?.selectedOptions?.[0]?.textContent || "";
+                if (id) context = await getRecordById("animals", id).catch(() => ({}));
+            }
+            const mode = scanType === "crop" ? "cropDoctor" : "animalDoctor";
+            const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, question: scanType === "crop" ? "Assess the visible crop condition and explain what the farmer should check next." : "Assess visible animal health signs and explain what the farmer should check next.", imageDataUrl, cropName: scanType === "crop" ? name : undefined, animalName: scanType === "animal" ? name : undefined, farmContext: context, today: new Date().toISOString().slice(0,10) }) });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.error || "AI scan failed.");
+            renderUnifiedAIScanResult(data.diagnosis || {}, imageDataUrl, id, scanType);
+            if (status) status.textContent = "";
+        } catch (error) { console.error("FarmKeeper AI scan error", error); if (status) status.textContent = ""; alert(error.message || "FarmKeeper AI could not analyze this photo."); }
+        finally { analyzeButton.disabled = false; }
+    });
+}
+
+function renderUnifiedAIScanResult(diagnosis, imageDataUrl, id, type) {
+    const out = document.getElementById("aiFarmScanResult"); if (!out) return;
+    const animal = type === "animal";
+    const issues = animal ? (diagnosis.possibleConcerns || []) : (diagnosis.possibleIssues || []);
+    const title = animal ? "🐄 AI Animal Health Assessment" : "🌱 AI Crop Assessment";
+    const subject = diagnosis[animal ? "animalType" : "cropName"] || (animal ? "Animal" : "Crop");
+    const issueLabel = animal ? "Possible concerns" : "Possible issues";
+    const disclaimer = diagnosis.disclaimer || (animal ? "This is an AI visual assessment, not a veterinary diagnosis." : "This is an AI visual assessment, not a confirmed diagnosis.");
+    const list = arr => (arr || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>No reliable information identified.</li>";
+    out.innerHTML = `<div class="ai-crop-result-header"><span>${title}</span><strong>${escapeHtml(diagnosis.confidence || "low")} confidence</strong></div><h3>${escapeHtml(subject)}</h3><p>${escapeHtml(diagnosis.assessment || "No clear assessment could be made.")}</p><div class="ai-crop-result-grid"><div><strong>${issueLabel}</strong><ul>${list(issues)}</ul></div><div><strong>Visible observations</strong><ul>${list(diagnosis.observations)}</ul></div><div><strong>Recommended next steps</strong><ul>${list(diagnosis.recommendedActions)}</ul></div></div><div class="ai-crop-urgency"><strong>Priority:</strong> ${escapeHtml(diagnosis.urgency || "monitor")}</div><p class="ai-crop-disclaimer">${escapeHtml(disclaimer)}</p><div class="home-ai-reminder-actions"><button type="button" class="small-button" id="saveUnifiedAIScanButton">💾 Save to ${animal ? "animal" : "crop"} records</button><button type="button" class="small-button" id="newUnifiedAIScanButton">📷 Scan another</button></div>`;
+    out.style.display = "block";
+    document.getElementById("saveUnifiedAIScanButton")?.addEventListener("click", async () => {
+        if (animal) await saveAIAnimalDiagnosis(diagnosis, imageDataUrl, id); else await saveAICropDiagnosis(diagnosis, imageDataUrl, id);
+        document.getElementById("saveUnifiedAIScanButton")?.setAttribute("disabled", "true");
+    });
+    document.getElementById("newUnifiedAIScanButton")?.addEventListener("click", () => { document.getElementById("aiFarmScanPhotoInput").value = ""; document.getElementById("aiFarmScanPreviewWrap").style.display = "none"; out.style.display = "none"; });
+}
+
 function setupAICropDoctor() {
     const openButton = document.getElementById("openCropDoctorButton");
     const card = document.getElementById("homeAiCropDoctorCard");
@@ -8254,6 +8335,92 @@ async function saveAICropDiagnosis(diagnosis, imageDataUrl, cropId) {
         console.error("Could not save AI crop diagnosis", error);
         alert("I couldn't save the crop assessment. Please try again.");
     }
+}
+
+
+function setupAIAnimalDoctor() {
+    const openButton = document.getElementById("openAnimalDoctorButton");
+    const card = document.getElementById("homeAiAnimalDoctorCard");
+    const closeButton = document.getElementById("closeAnimalDoctorButton");
+    const input = document.getElementById("aiAnimalPhotoInput");
+    const previewWrap = document.getElementById("aiAnimalPreviewWrap");
+    const preview = document.getElementById("aiAnimalPreview");
+    const analyzeButton = document.getElementById("analyzeAnimalPhotoButton");
+    if (!card || !input || !preview || !analyzeButton) return;
+    const open = async () => {
+        card.style.display = "block";
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        await populateAIAnimalSelector();
+    };
+    openButton?.addEventListener("click", open);
+    closeButton?.addEventListener("click", () => { card.style.display = "none"; });
+    input.addEventListener("change", () => {
+        const file = input.files?.[0];
+        if (!file) { previewWrap.style.display = "none"; return; }
+        if (!file.type.startsWith("image/")) { alert("Please choose an animal photo."); input.value = ""; return; }
+        if (file.size > 8 * 1024 * 1024) { alert("Please choose an image smaller than 8 MB."); input.value = ""; return; }
+        const reader = new FileReader();
+        reader.onload = () => { preview.src = reader.result; previewWrap.style.display = "grid"; };
+        reader.readAsDataURL(file);
+    });
+    analyzeButton.addEventListener("click", analyzeAIAnimalPhoto);
+}
+
+async function populateAIAnimalSelector() {
+    const select = document.getElementById("aiAnimalSelect");
+    if (!select) return;
+    const previous = select.value;
+    try {
+        const animals = await getAllRecords("animals");
+        select.innerHTML = '<option value="">Select an animal group</option>' + animals.map(a => `<option value="${Number(a.id)}">${escapeHtml(a.type || "Animal")} ${a.breed ? `— ${escapeHtml(a.breed)}` : ""} ${a.count ? `(${Number(a.count).toLocaleString("en-NG")})` : ""}</option>`).join("");
+        if ([...select.options].some(o => o.value === previous)) select.value = previous;
+    } catch (e) { console.warn("Could not load AI animal selector", e); }
+}
+
+function renderAIAnimalDiagnosis(diagnosis, imageDataUrl, animalId) {
+    const out = document.getElementById("aiAnimalDiagnosisResult");
+    if (!out) return;
+    const issueList = (diagnosis.possibleConcerns || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>No clear concern identified from the image.</li>";
+    const obsList = (diagnosis.observations || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>No reliable visible observation.</li>";
+    const actionList = (diagnosis.recommendedActions || []).map(x => `<li>${escapeHtml(x)}</li>`).join("") || "<li>Monitor the animal and seek veterinary advice if concerns persist.</li>";
+    out.innerHTML = `<div class="ai-crop-result-header"><span>🐄 AI Animal Health Assessment</span><strong>${escapeHtml(diagnosis.confidence || "low")} confidence</strong></div><h3>${escapeHtml(diagnosis.animalType || "Animal")}</h3><p>${escapeHtml(diagnosis.assessment || "No clear assessment could be made.")}</p><div class="ai-crop-result-grid"><div><strong>Possible concerns</strong><ul>${issueList}</ul></div><div><strong>Visible observations</strong><ul>${obsList}</ul></div><div><strong>Recommended next steps</strong><ul>${actionList}</ul></div></div><div class="ai-crop-urgency"><strong>Priority:</strong> ${escapeHtml(diagnosis.urgency || "monitor")}</div><p class="ai-crop-disclaimer">${escapeHtml(diagnosis.disclaimer || "This is an AI visual assessment, not a veterinary diagnosis.")}</p><div class="home-ai-reminder-actions"><button type="button" class="small-button" id="saveAIAnimalDiagnosisButton">💾 Save to animal records</button><button type="button" class="small-button" id="newAIAnimalScanButton">📷 Scan another</button></div>`;
+    out.style.display = "block";
+    document.getElementById("saveAIAnimalDiagnosisButton")?.addEventListener("click", () => saveAIAnimalDiagnosis(diagnosis, imageDataUrl, animalId));
+    document.getElementById("newAIAnimalScanButton")?.addEventListener("click", () => { document.getElementById("aiAnimalPhotoInput").value = ""; document.getElementById("aiAnimalPreviewWrap").style.display = "none"; out.style.display = "none"; });
+}
+
+async function analyzeAIAnimalPhoto() {
+    const input = document.getElementById("aiAnimalPhotoInput");
+    const status = document.getElementById("aiAnimalDoctorStatus");
+    const button = document.getElementById("analyzeAnimalPhotoButton");
+    const file = input?.files?.[0];
+    if (!file) { alert("Please take or choose an animal photo first."); return; }
+    if (button) button.disabled = true;
+    if (status) status.textContent = "FarmKeeper AI is examining the animal photo…";
+    try {
+        const imageDataUrl = await resizeCropImage(file);
+        const select = document.getElementById("aiAnimalSelect");
+        const animalId = select?.value ? Number(select.value) : null;
+        const animalName = select?.selectedOptions?.[0]?.textContent || "";
+        let animalContext = {};
+        if (animalId) animalContext = await getRecordById("animals", animalId).catch(() => ({}));
+        const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "animalDoctor", question: "Assess visible animal health signs and explain what the farmer should check next.", imageDataUrl, animalName, farmContext: animalContext, today: new Date().toISOString().slice(0,10) }) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Animal analysis failed.");
+        renderAIAnimalDiagnosis(data.diagnosis || {}, imageDataUrl, animalId);
+        if (status) status.textContent = "";
+    } catch (error) { console.error("FarmKeeper AI animal health error", error); if (status) status.textContent = ""; alert(error.message || "FarmKeeper AI could not analyze this animal photo."); }
+    finally { if (button) button.disabled = false; }
+}
+
+async function saveAIAnimalDiagnosis(diagnosis, imageDataUrl, animalId) {
+    try {
+        const notes = [`AI animal health assessment: ${diagnosis.assessment || ""}`, `Possible concerns: ${(diagnosis.possibleConcerns || []).join("; ")}`, `Observations: ${(diagnosis.observations || []).join("; ")}`, `Recommended actions: ${(diagnosis.recommendedActions || []).join("; ")}`, `Confidence: ${diagnosis.confidence || "low"}. Priority: ${diagnosis.urgency || "monitor"}.`, diagnosis.disclaimer || "AI visual assessment; not a veterinary diagnosis."].join("\n");
+        await addRecord("dailyRecords", { date: new Date().toISOString().slice(0,10), activityType: "AI Animal Health Assessment", animalId: animalId ? Number(animalId) : null, notes, createdAt: new Date().toISOString() });
+        await addRecord("photos", { target: animalId ? `animal:${animalId}` : "farm:ai-animal-health", caption: `AI animal health assessment — ${diagnosis.animalType || "Animal"}`, dataUrl: imageDataUrl, createdAt: new Date().toISOString(), aiDiagnosis: true });
+        appendFarmKeeperAIMessage("assistant", "✅ Animal health assessment saved to your FarmKeeper records.");
+        document.getElementById("saveAIAnimalDiagnosisButton")?.setAttribute("disabled", "true");
+    } catch (error) { console.error("Could not save AI animal diagnosis", error); alert("I couldn't save the animal assessment. Please try again."); }
 }
 
 function setupFarmKeeperAI() {

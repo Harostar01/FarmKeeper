@@ -13,13 +13,39 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const question = String(body.question || '').trim();
     const farmContext = body.farmContext || {};
-    const mode = ['reminder','cropDoctor'].includes(body.mode) ? body.mode : 'chat';
+    const mode = ['reminder','cropDoctor','animalDoctor'].includes(body.mode) ? body.mode : 'chat';
     const today = String(body.today || new Date().toISOString().slice(0, 10));
 
     if (!question) return res.status(400).json({ error: 'Please enter a question.' });
     if (question.length > 1000) return res.status(400).json({ error: 'Question is too long.' });
 
     const safeContext = JSON.stringify(farmContext).slice(0, 30000);
+
+    if (mode === 'animalDoctor') {
+      const imageDataUrl = String(body.imageDataUrl || '');
+      if (!imageDataUrl || !/^data:image\/(png|jpe?g|webp);base64,/i.test(imageDataUrl)) return res.status(400).json({ error: 'Please provide a valid animal photo (PNG, JPEG, or WebP).' });
+      if (imageDataUrl.length > 3500000) return res.status(413).json({ error: 'That photo is too large. Please choose a smaller photo and try again.' });
+      const animalName = String(body.animalName || '').slice(0, 160);
+      const instructions = `You are FarmKeeper AI Animal Health, a cautious livestock and poultry photo-assessment assistant. Assess only visible signs in the supplied photo plus the provided animal context. Do NOT make a certain veterinary diagnosis. If the image is unclear or cannot support a health conclusion, say so. Do not invent symptoms or animal details. Give low-risk husbandry/observation next steps and recommend a qualified veterinarian or animal-health professional for diagnosis and treatment, especially for severe, contagious, rapidly worsening, or emergency signs. Do not prescribe drugs, antibiotics, dewormers, injections, exact doses, or withdrawal periods. Return ONLY one valid JSON object with exactly these fields: animalType, assessment, possibleConcerns, confidence, observations, recommendedActions, urgency, disclaimer. Arrays must contain short strings. confidence must be low, medium, or high. urgency must be monitor, soon, or urgent. The disclaimer must clearly say this is an AI visual assessment and not a veterinary diagnosis. Animal group selected by farmer: ${animalName || 'not specified'}. Today is ${today}. Animal context: ${safeContext}`;
+      try {
+        const response = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify({ model: process.env.OPENAI_MODEL || 'gpt-5.6-luna', instructions, input: [{ role: 'user', content: [{ type: 'input_text', text: question || 'Assess visible animal health signs and explain what the farmer should check next.' }, { type: 'input_image', image_url: imageDataUrl, detail: 'high' }] }], max_output_tokens: 700 }) });
+        const data = await response.json();
+        if (!response.ok) { console.error('OpenAI animal doctor error', data); return res.status(502).json({ error: 'FarmKeeper AI could not analyze the animal photo right now. Please try again.' }); }
+        const text = (data.output_text || (data.output || []).flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('\n')).trim();
+        const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+        let diagnosis; try { diagnosis = JSON.parse(cleaned); } catch (e) { console.error('Animal diagnosis JSON parse failed', e, text); return res.status(502).json({ error: 'The animal analysis returned an unexpected result. Please try again.' }); }
+        const validConfidence = new Set(['low','medium','high']), validUrgency = new Set(['monitor','soon','urgent']);
+        diagnosis.animalType = String(diagnosis.animalType || animalName || 'Animal').slice(0,160);
+        diagnosis.assessment = String(diagnosis.assessment || 'No clear assessment could be made.').slice(0,1000);
+        diagnosis.possibleConcerns = Array.isArray(diagnosis.possibleConcerns) ? diagnosis.possibleConcerns.map(x=>String(x).slice(0,220)).slice(0,5) : [];
+        diagnosis.observations = Array.isArray(diagnosis.observations) ? diagnosis.observations.map(x=>String(x).slice(0,220)).slice(0,6) : [];
+        diagnosis.recommendedActions = Array.isArray(diagnosis.recommendedActions) ? diagnosis.recommendedActions.map(x=>String(x).slice(0,260)).slice(0,6) : [];
+        diagnosis.confidence = validConfidence.has(diagnosis.confidence) ? diagnosis.confidence : 'low';
+        diagnosis.urgency = validUrgency.has(diagnosis.urgency) ? diagnosis.urgency : 'monitor';
+        diagnosis.disclaimer = String(diagnosis.disclaimer || 'This is an AI visual assessment, not a veterinary diagnosis.').slice(0,500);
+        return res.status(200).json({ diagnosis });
+      } catch (error) { console.error('FarmKeeper animal doctor request failed', error); return res.status(500).json({ error: 'Something went wrong while analyzing the animal photo.' }); }
+    }
 
     if (mode === 'cropDoctor') {
       const imageDataUrl = String(body.imageDataUrl || '');

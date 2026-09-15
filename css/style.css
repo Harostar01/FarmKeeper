@@ -3197,3 +3197,16 @@ body.farmkeeper-ai-nonhome .farmkeeper-ai-floating { display: flex; }
 .ai-crop-result-grid li { margin:5px 0; }
 .ai-crop-urgency { margin-top:12px; padding:9px 11px; border-radius:10px; background:#fff; }
 .ai-crop-disclaimer { font-size:.78rem; color:#66736a; }
+
+/* v27 AI Animal Health */
+.home-ai-animal-doctor-card { margin: 14px 0; padding: 18px; border-radius: 20px; background: #fff; border: 1px solid rgba(46,125,50,.18); box-shadow: 0 8px 26px rgba(0,0,0,.06); }
+.home-ai-animal-doctor-card .ai-crop-preview { max-height: 320px; }
+
+
+/* V27.1 unified AI scanner and home polish */
+.ai-scan-type-switch { display:flex; gap:10px; margin:14px 0 18px; }
+.ai-scan-type { flex:1; border:1px solid var(--border-color, #d9e2dc); background:var(--card-bg, #fff); border-radius:14px; padding:11px 14px; font-weight:700; cursor:pointer; }
+.ai-scan-type.active { box-shadow:0 0 0 2px currentColor inset; }
+.home-ai-scan-card { margin-top:16px; }
+.home-ai-scan-card .home-ai-doctor-help { max-width:720px; }
+.home-ai-chip#openAIScanButton { font-weight:800; }
