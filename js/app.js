@@ -7985,12 +7985,49 @@ async function buildFarmKeeperAIContext() {
     return context;
 }
 
+function formatFarmKeeperAIText(text) {
+    const source = String(text || "").replace(/\r\n/g, "\n").trim();
+    if (!source) return "";
+    const escape = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const inline = (value) => escape(value)
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>");
+    const lines = source.split("\n");
+    const html = [];
+    let list = false;
+    const closeList = () => { if (list) { html.push("</ul>"); list = false; } };
+    for (const raw of lines) {
+        const line = raw.trim();
+        if (!line) { closeList(); continue; }
+        if (/^[-*]\s+/.test(line)) {
+            if (!list) { html.push("<ul>"); list = true; }
+            html.push(`<li>${inline(line.replace(/^[-*]\s+/, ""))}</li>`);
+        } else if (/^\d+[.)]\s+/.test(line)) {
+            if (!list) { html.push("<ul class=\"ai-numbered-list\">"); list = true; }
+            html.push(`<li>${inline(line.replace(/^\d+[.)]\s+/, ""))}</li>`);
+        } else if (/^#{1,3}\s+/.test(line)) {
+            closeList();
+            html.push(`<h4>${inline(line.replace(/^#{1,3}\s+/, ""))}</h4>`);
+        } else {
+            closeList();
+            html.push(`<p>${inline(line)}</p>`);
+        }
+    }
+    closeList();
+    return html.join("");
+}
+
 function appendFarmKeeperAIMessage(role, text) {
     const chat = document.getElementById("homeAiChat");
     if (!chat) return;
     const message = document.createElement("div");
     message.className = `home-ai-message ${role}`;
-    message.textContent = text;
+    if (role === "assistant") {
+        message.innerHTML = formatFarmKeeperAIText(text);
+    } else {
+        message.textContent = text;
+    }
     chat.appendChild(message);
     chat.scrollTop = chat.scrollHeight;
 }

@@ -3216,18 +3216,18 @@ body.farmkeeper-ai-nonhome .farmkeeper-ai-floating { display: flex; }
    Visual-only layer: keeps existing IDs/classes and behavior.
    ========================================================= */
 :root {
-    --fk-green-950: #123b24;
-    --fk-green-900: #18552f;
-    --fk-green-800: #1f6b3a;
-    --fk-green-700: #2f7d46;
-    --fk-green-600: #3f9658;
-    --fk-green-100: #e9f6ed;
-    --fk-green-50: #f4fbf6;
-    --fk-ink: #17251b;
-    --fk-muted: #6c786f;
-    --fk-line: #e5ebe6;
+    --fk-green-950: #2e7d32;
+    --fk-green-900: #2e7d32;
+    --fk-green-800: #2e7d32;
+    --fk-green-700: #388e3c;
+    --fk-green-600: #4caf50;
+    --fk-green-100: #e8f5e9;
+    --fk-green-50: #f4f7f4;
+    --fk-ink: #263326;
+    --fk-muted: #69756c;
+    --fk-line: #e0e0e0;
     --fk-card: #ffffff;
-    --fk-bg: #f5f8f5;
+    --fk-bg: #f4f7f4;
     --fk-shadow: 0 10px 30px rgba(20, 55, 31, .08);
     --fk-shadow-hover: 0 16px 38px rgba(20, 55, 31, .13);
     --fk-radius: 20px;
@@ -3588,3 +3588,30 @@ footer { color: #8a948d; }
     .home-ai-chip { width: 100%; text-align: left; }
     .module-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* V27.3: preserve the original FarmKeeper green/white palette while improving AI readability. */
+:root {
+  --fk-green-950: #1f5f2c;
+  --fk-green-900: #245f2a;
+  --fk-green-800: #2e7d32;
+  --fk-green-700: #388e3c;
+  --fk-green-600: #4caf50;
+  --fk-green-100: #e8f5e9;
+  --fk-green-50: #f4f7f4;
+  --fk-ink: #263326;
+  --fk-muted: #69756c;
+  --fk-line: #e0e0e0;
+  --fk-bg: #f4f7f4;
+}
+body { background: #f4f7f4; color: #263326; }
+.app-header { background: #2e7d32; }
+.home-ai-chat { max-height: 420px; overflow-y: auto; }
+.home-ai-message.assistant { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.home-ai-message.assistant p { margin: 0 0 8px; }
+.home-ai-message.assistant p:last-child { margin-bottom: 0; }
+.home-ai-message.assistant h4 { margin: 2px 0 8px; font-size: 1rem; }
+.home-ai-message.assistant ul { margin: 4px 0 8px 20px; padding: 0; }
+.home-ai-message.assistant li { margin: 4px 0; }
+.home-ai-message.assistant code { padding: 1px 5px; border-radius: 5px; background: rgba(0,0,0,.06); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+.home-ai-form button { background: #2e7d32; }
+@media (max-width: 600px) { .home-ai-chat { max-height: 380px; } }
