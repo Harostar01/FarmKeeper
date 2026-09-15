@@ -2123,10 +2123,20 @@ body[data-navigation="more"] .modules {
     display: none !important;
 }
 
-/* My Crops is a compact Home section. */
+/* Crop records belong to the Crops workspace, never the Home dashboard. */
+body:not(.navigation-active) #cropWorkspaceIntro,
+body:not(.navigation-active) #cropForm,
 body:not(.navigation-active) #cropListSection,
-body[data-navigation="home"] #cropListSection {
-    display: block !important;
+body:not(.navigation-active) #cropDetailsSection,
+body:not(.navigation-active) #cropActivityForm,
+body:not(.navigation-active) #cropActivityOverview,
+body[data-navigation="home"] #cropWorkspaceIntro,
+body[data-navigation="home"] #cropForm,
+body[data-navigation="home"] #cropListSection,
+body[data-navigation="home"] #cropDetailsSection,
+body[data-navigation="home"] #cropActivityForm,
+body[data-navigation="home"] #cropActivityOverview {
+    display: none !important;
 }
 
 /* Never carry Home dashboard cards into a focused workspace. */
@@ -3615,3 +3625,22 @@ body { background: #f4f7f4; color: #263326; }
 .home-ai-message.assistant code { padding: 1px 5px; border-radius: 5px; background: rgba(0,0,0,.06); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 .home-ai-form button { background: #2e7d32; }
 @media (max-width: 600px) { .home-ai-chat { max-height: 380px; } }
+
+.ai-report-card .ai-report-body h4 { margin: 16px 0 7px; font-size: 16px; }
+.ai-report-card .ai-report-body p { margin: 8px 0; line-height: 1.6; }
+.ai-report-card .ai-report-body ul { margin: 8px 0 12px 20px; padding: 0; }
+.ai-report-card .ai-report-body li { margin: 5px 0; line-height: 1.5; }
+
+/* V27.5 Unified AI tools: keep Ask FarmKeeper AI visible while grouping secondary AI tools. */
+.home-ai-actions-row { display:flex; justify-content:flex-end; margin:-4px 0 12px; }
+.home-ai-tools-toggle { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(46,125,50,.22); background:#fff; color:#2e7d32; border-radius:999px; padding:8px 13px; font:inherit; font-weight:800; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+.home-ai-tools-toggle:hover { transform:translateY(-1px); box-shadow:0 5px 14px rgba(0,0,0,.07); }
+.home-ai-tools-toggle.open { background:#edf6ee; }
+.home-ai-tools-menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 14px; padding:10px; border:1px solid rgba(46,125,50,.14); border-radius:16px; background:#f8fbf8; }
+.home-ai-tools-menu[hidden] { display:none; }
+.home-ai-tool-item { display:flex; align-items:center; gap:10px; text-align:left; border:1px solid #dfe8e1; background:#fff; border-radius:13px; padding:11px; cursor:pointer; font:inherit; color:#253128; min-width:0; }
+.home-ai-tool-item:hover { border-color:rgba(46,125,50,.35); transform:translateY(-1px); }
+.home-ai-tool-item > span { display:flex; flex-direction:column; min-width:0; }
+.home-ai-tool-item strong { font-size:.92rem; }
+.home-ai-tool-item small { color:#68746b; margin-top:2px; line-height:1.25; }
+@media (max-width:600px) { .home-ai-tools-menu { grid-template-columns:1fr; } .home-ai-actions-row { justify-content:stretch; } .home-ai-tools-toggle { width:100%; justify-content:center; } }

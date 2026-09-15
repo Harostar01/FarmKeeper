@@ -205,12 +205,15 @@
                 <span class="home-ai-icon">🤖</span>
             </div>
             <p class="home-ai-intro">Ask questions about your crops, animals, activities, sales and expenses.</p>
-            <div class="home-ai-suggestions" aria-label="AI question suggestions">
-                <button type="button" class="home-ai-chip" data-ai-question="Give me a quick summary of my farm.">📊 Farm summary</button>
-                <button type="button" class="home-ai-chip" data-ai-question="What should I pay attention to on my farm right now?">🌱 What needs attention?</button>
-                <button type="button" class="home-ai-chip" data-ai-question="How are my sales and expenses looking?">💰 Finance insight</button>
-                <button type="button" class="home-ai-chip" data-ai-question="What should I work on next based on my farm records and reminders?">📋 Next actions</button>
-                <button type="button" class="home-ai-chip" id="openAIScanButton">📷 AI Farm Scan</button>
+            <div class="home-ai-actions-row">
+                <button type="button" class="home-ai-tools-toggle" id="homeAIToolsToggle" aria-expanded="false" aria-controls="homeAIToolsMenu">＋ <span>AI Tools</span></button>
+            </div>
+            <div class="home-ai-tools-menu" id="homeAIToolsMenu" hidden aria-label="FarmKeeper AI tools">
+                <button type="button" class="home-ai-tool-item" id="openAIScanButton">📷 <span><strong>AI Farm Scan</strong><small>Scan a crop or animal photo</small></span></button>
+                <button type="button" class="home-ai-tool-item" id="homeAIFarmReportButton">📊 <span><strong>AI Farm Report</strong><small>Analyze your saved farm records</small></span></button>
+                <button type="button" class="home-ai-tool-item" data-ai-question="Help me create a useful reminder based on my farm records and upcoming tasks.">🔔 <span><strong>Smart Reminder</strong><small>Ask AI to prepare a reminder</small></span></button>
+                <button type="button" class="home-ai-tool-item" data-ai-question="Give me a complete summary of my farm, including crops, animals, finances, reminders and recent activities. Separate recorded facts from recommendations.">📋 <span><strong>Farm Summary</strong><small>Get a complete farm overview</small></span></button>
+                <button type="button" class="home-ai-tool-item" data-ai-question="What should I pay attention to on my farm right now, based only on my saved FarmKeeper records? Give practical next actions.">🌱 <span><strong>What needs attention?</strong><small>Find important next actions</small></span></button>
             </div>
             <div class="home-ai-chat" id="homeAiChat" aria-live="polite">
                 <div class="home-ai-message assistant">Hello! I’m FarmKeeper AI. Ask me about the records you have saved in FarmKeeper.</div>
@@ -1811,14 +1814,20 @@
                 </select>
 
 
-                <button
-                    type="button"
-                    class="primary-button"
-                    id="generateReportButton">
-
-                    📊 Generate Report
-
-                </button>
+                <div class="report-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="generateReportButton">
+                        📊 Generate Report
+                    </button>
+                    <button
+                        type="button"
+                        class="small-button"
+                        id="generateAIReportButton">
+                        🤖 Generate AI Report
+                    </button>
+                </div>
 
             </div>
 

@@ -3623,18 +3623,37 @@ function setupReportsNavigation() {
 }
 
 function setupReportGenerator() {
+    const generateButton = document.getElementById("generateReportButton");
+    generateButton?.addEventListener("click", generateFarmReport);
 
-    const generateButton =
-        document.getElementById(
-            "generateReportButton"
-        );
+    const aiButton = document.getElementById("generateAIReportButton");
+    aiButton?.addEventListener("click", generateAIFarmReport);
+}
 
-
-    generateButton.addEventListener(
-        "click",
-        generateFarmReport
-    );
-
+async function generateAIFarmReport() {
+    const button = document.getElementById("generateAIReportButton");
+    const results = document.getElementById("reportResults");
+    const period = document.getElementById("reportPeriod")?.value || "all";
+    if (button) button.disabled = true;
+    if (results) results.innerHTML = '<div class="report-card"><p>🤖 FarmKeeper AI is analyzing your farm records…</p></div>';
+    try {
+        const farmContext = await buildFarmKeeperAIContext();
+        const periodLabel = ({all:"All Time",today:"Today",week:"This Week",month:"This Month"})[period] || "All Time";
+        const question = `Create a complete ${periodLabel} Farm Report from my FarmKeeper records. Cover crops, crop activities, animals and animal health observations, poultry records, sales, expenses, labour, profit/loss, reminders, daily records and farm visits when data exists. Clearly separate what the records show from recommendations. Highlight important issues, trends, missing information, and practical next actions. Do not invent facts. Use headings, concise paragraphs, bullet points and numbers where useful. Make the report detailed enough to be useful to a farmer but easy to read.`;
+        const response = await fetch("/api/ai", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({mode:"farmReport", question, farmContext, today:new Date().toISOString().slice(0,10)})
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "AI report failed.");
+        if (results) results.innerHTML = `<div class="report-card ai-report-card"><h3>🤖 AI Farm Report — ${escapeHtml(periodLabel)}</h3><div class="ai-report-body">${formatFarmKeeperAIText(data.answer || "No AI report was returned.")}</div><p class="form-help">AI-generated from your saved FarmKeeper records. Review important decisions with the relevant agricultural or financial professional when needed.</p></div>`;
+    } catch (error) {
+        console.error("AI farm report error", error);
+        if (results) results.innerHTML = `<div class="report-card"><p class="empty-message">❌ ${escapeHtml(error.message || "Could not generate the AI farm report.")}</p></div>`;
+    } finally {
+        if (button) button.disabled = false;
+    }
 }
 
 async function generateFarmReport() {
@@ -7308,10 +7327,53 @@ function setupBottomNavigation() {
         });
     }
 
+    setupHomeAIToolsMenu();
+
     // Start on the complete Home landing page with no nav item active.
     document.body.removeAttribute("data-navigation");
     document.body.classList.remove("farmkeeper-ai-nonhome");
     showFullAppLanding();
+}
+
+function setupHomeAIToolsMenu() {
+    const toggle = document.getElementById("homeAIToolsToggle");
+    const menu = document.getElementById("homeAIToolsMenu");
+    if (!toggle || !menu || toggle.dataset.bound === "1") return;
+    toggle.dataset.bound = "1";
+    const close = () => {
+        menu.hidden = true;
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.classList.remove("open");
+    };
+    toggle.addEventListener("click", () => {
+        const willOpen = menu.hidden;
+        menu.hidden = !willOpen;
+        toggle.setAttribute("aria-expanded", String(willOpen));
+        toggle.classList.toggle("open", willOpen);
+    });
+    document.getElementById("homeAIFarmReportButton")?.addEventListener("click", () => {
+        close();
+        const moreButton = document.querySelector('.bottom-nav-item[data-nav="more"]');
+        if (moreButton) {
+            moreButton.click();
+            setTimeout(() => {
+                const reportButton = document.getElementById("moreReportsButton");
+                if (reportButton) reportButton.click();
+                setTimeout(() => document.getElementById("generateAIReportButton")?.click(), 150);
+            }, 120);
+        }
+    });
+    menu.querySelectorAll("[data-ai-question]").forEach(button => {
+        button.addEventListener("click", () => {
+            const input = document.getElementById("homeAiInput");
+            const question = button.dataset.aiQuestion || "";
+            if (input) {
+                input.value = question;
+                input.focus();
+            }
+            close();
+        });
+    });
 }
 
 function setupNonHomeAIAccess() {
